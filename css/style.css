@@ -1,5 +1,5 @@
 /* ============================================
-   Ayam Goreng Ledger — Custom Styles
+   Jambu Batu Ledger — Custom Styles
    Theme: Executive Ledger (Professional Slate/Navy)
    ============================================ */
 
@@ -301,7 +301,6 @@ table td {
 
 /* === Print Styles === */
 @media print {
-  /* Hide all app chrome and interactive controls */
   .bottom-nav,
   #btn-sign-out,
   #btn-settings,
@@ -311,7 +310,6 @@ table td {
     display: none !important;
   }
 
-  /* Force background white and text black on printable elements */
   body, html, #view-statement {
     background: white !important;
     color: black !important;
@@ -319,7 +317,6 @@ table td {
     margin: 0 !important;
   }
 
-  /* Expand statement view to full page width */
   #view-statement {
     display: block !important;
   }

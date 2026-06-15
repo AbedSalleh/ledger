@@ -1,98 +1,51 @@
 /**
- * @fileoverview Google OAuth 2.0 authentication module for Ayam Goreng Ledger.
+ * @fileoverview Google OAuth 2.0 authentication module for Jambu Batu Ledger.
  * Handles sign-in/sign-out, token management, and user profile retrieval
  * using Google Identity Services (GIS) and the Google API Client Library (gapi).
  *
- * Exposes a global `AyamAuth` object.
+ * Exposes a global `JambuAuth` object.
  */
 
-const AyamAuth = (() => {
-  // ---------------------------------------------------------------------------
-  // Private state
-  // ---------------------------------------------------------------------------
-
-  /** @type {google.accounts.oauth2.TokenClient|null} */
+const JambuAuth = (() => {
   let tokenClient = null;
-
-  /** Whether the gapi client library has been initialised. */
   let gapiInited = false;
-
-  /** Whether the Google Identity Services library has been loaded. */
   let gisInited = false;
-
-  /** Callback invoked whenever the auth state changes: (isSignedIn, user) */
   let onAuthChangeCallback = null;
-
-  /** @type {string|null} */
   let savedClientId = null;
-
-  /** Whether the session has been restored from localStorage. */
   let sessionRestored = false;
-
-  /** @type {{ name: string, email: string, picture: string }|null} */
   let currentUser = null;
 
-  /** OAuth 2.0 scopes required by the application. */
   const SCOPES = [
     'https://www.googleapis.com/auth/drive.file',
     'https://www.googleapis.com/auth/spreadsheets',
   ].join(' ');
 
-  /** Discovery documents for the Google APIs we use. */
   const DISCOVERY_DOCS = [
     'https://sheets.googleapis.com/$discovery/rest?version=v4',
     'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
   ];
 
-  /** Maximum number of silent-refresh retries before giving up. */
   const MAX_REFRESH_RETRIES = 2;
 
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Fetch the authenticated user's profile from the Google UserInfo endpoint.
-   *
-   * @param {string} accessToken - A valid OAuth 2.0 access token.
-   * @returns {Promise<{ name: string, email: string, picture: string }>}
-   * @private
-   */
   async function _fetchUserInfo(accessToken) {
     try {
       const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-
-      if (!res.ok) {
-        throw new Error(`UserInfo request failed with status ${res.status}`);
-      }
-
+      if (!res.ok) throw new Error(`UserInfo request failed with status ${res.status}`);
       const info = await res.json();
-      return {
-        name: info.name || 'User',
-        email: info.email || '',
-        picture: info.picture || '',
-      };
+      return { name: info.name || 'User', email: info.email || '', picture: info.picture || '' };
     } catch (err) {
-      console.warn('[AyamAuth] Could not fetch user info:', err);
+      console.warn('[JambuAuth] Could not fetch user info:', err);
       return { name: 'User', email: '', picture: '' };
     }
   }
 
-  /**
-   * Wrap `tokenClient.requestAccessToken` in a promise so callers can await it.
-   *
-   * @param {{ prompt: string }} opts – Options forwarded to `requestAccessToken`.
-   * @returns {Promise<google.accounts.oauth2.TokenResponse>}
-   * @private
-   */
   function _requestTokenAsync(opts) {
     return new Promise((resolve, reject) => {
-      // Temporarily override the callback to capture the response.
       const origCb = tokenClient.callback;
       tokenClient.callback = (tokenResponse) => {
-        tokenClient.callback = origCb; // restore
+        tokenClient.callback = origCb;
         if (tokenResponse.error !== undefined) {
           reject(new Error(`Token error: ${tokenResponse.error}`));
         } else {
@@ -107,272 +60,172 @@ const AyamAuth = (() => {
     });
   }
 
-  /**
-   * Helper to initialize the token client once both client ID and GIS are loaded.
-   */
   function _initTokenClient() {
     if (!savedClientId || !gisInited || tokenClient) return;
-
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: savedClientId,
       scope: SCOPES,
       callback: async (tokenResponse) => {
         if (tokenResponse.error !== undefined) {
-          console.error('[AyamAuth] Token callback error:', tokenResponse);
+          console.error('[JambuAuth] Token callback error:', tokenResponse);
           if (onAuthChangeCallback) onAuthChangeCallback(false, null);
           return;
         }
-
         gapi.client.setToken(tokenResponse);
         currentUser = await _fetchUserInfo(tokenResponse.access_token);
-
-        // Persist token session to localStorage
         const expiresAt = Date.now() + (parseInt(tokenResponse.expires_in, 10) || 3600) * 1000;
-        localStorage.setItem('ayam_ledger_token', JSON.stringify({
+        localStorage.setItem('jambu_ledger_token', JSON.stringify({
           token: tokenResponse,
           expiresAt: expiresAt,
           user: currentUser
         }));
-
         if (onAuthChangeCallback) onAuthChangeCallback(true, currentUser);
       },
     });
-
-    console.info('[AyamAuth] Token client initialised.');
+    console.info('[JambuAuth] Token client initialised.');
   }
 
-  /**
-   * Safely restore session from localStorage once libraries and configurations are loaded.
-   */
   function _tryRestoreSession() {
     if (!gapiInited || !gisInited || !savedClientId || sessionRestored) return;
-
     try {
-      const savedSession = localStorage.getItem('ayam_ledger_token');
+      const savedSession = localStorage.getItem('jambu_ledger_token');
       if (savedSession) {
         const { token, expiresAt, user } = JSON.parse(savedSession);
         if (expiresAt > Date.now()) {
-          console.info('[AyamAuth] Restored active session from localStorage.');
+          console.info('[JambuAuth] Restored active session from localStorage.');
           gapi.client.setToken(token);
           currentUser = user;
           sessionRestored = true;
-          // Defer callback slightly to let application bootstrap complete
           setTimeout(() => {
             if (onAuthChangeCallback) onAuthChangeCallback(true, currentUser);
           }, 50);
         } else {
-          localStorage.removeItem('ayam_ledger_token');
+          localStorage.removeItem('jambu_ledger_token');
         }
       }
     } catch (e) {
-      console.warn('[AyamAuth] Failed to restore session:', e);
+      console.warn('[JambuAuth] Failed to restore session:', e);
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Public API
-  // ---------------------------------------------------------------------------
-
   return {
-    /**
-     * Called by the gapi `<script>` tag's `onload` attribute.
-     * Loads and initialises the gapi client with the required discovery docs.
-     */
     handleGapiLoad() {
       gapi.load('client', async () => {
         try {
           await gapi.client.init({ discoveryDocs: DISCOVERY_DOCS });
           gapiInited = true;
-          console.info('[AyamAuth] gapi client initialised.');
+          console.info('[JambuAuth] gapi client initialised.');
           this._maybeReady();
         } catch (err) {
-          console.error('[AyamAuth] gapi client init failed:', err);
+          console.error('[JambuAuth] gapi client init failed:', err);
         }
       });
     },
 
-    /**
-     * Called by the GIS `<script>` tag's `onload` attribute.
-     * Marks GIS as loaded. Actual token-client initialisation happens in
-     * {@link init} once the CLIENT_ID is known.
-     */
     handleGisLoad() {
       gisInited = true;
-      console.info('[AyamAuth] GIS library loaded.');
+      console.info('[JambuAuth] GIS library loaded.');
       _initTokenClient();
       this._maybeReady();
     },
 
-    /**
-     * Initialise the auth module with a Google OAuth Client ID.
-     * Must be called once from your application entry-point (e.g. `app.js`).
-     *
-     * @param {string} clientId – Google OAuth 2.0 Client ID.
-     * @param {(isSignedIn: boolean, user: object|null) => void} onAuthChange –
-     *   Callback invoked when the authentication state changes.
-     */
     init(clientId, onAuthChange) {
       if (!clientId) {
-        console.error('[AyamAuth] init() called without a clientId.');
+        console.error('[JambuAuth] init() called without a clientId.');
         return;
       }
-
       savedClientId = clientId;
       onAuthChangeCallback = onAuthChange;
-
       if (gisInited) {
         _initTokenClient();
       } else {
-        console.info('[AyamAuth] Saved client ID. Awaiting GIS script load to initialise token client.');
+        console.info('[JambuAuth] Saved client ID. Awaiting GIS script load to initialise token client.');
       }
-
-      // Try restoring the session in case libraries were already loaded
       _tryRestoreSession();
     },
 
-    /**
-     * Trigger the Google sign-in flow.
-     * Use select_account instead of consent so that permissions are not repeatedly requested.
-     */
     signIn() {
       if (!gapiInited || !gisInited) {
-        console.warn('[AyamAuth] Google APIs not yet loaded. Cannot sign in.');
+        console.warn('[JambuAuth] Google APIs not yet loaded. Cannot sign in.');
         return;
       }
-
       if (!tokenClient) {
-        console.error('[AyamAuth] Auth not initialised. Call init() first.');
+        console.error('[JambuAuth] Auth not initialised. Call init() first.');
         return;
       }
-
       const existingToken = gapi.client.getToken();
       if (existingToken === null) {
-        // User choosing their account. Permission consent is automatically requested only if not previously granted.
         tokenClient.requestAccessToken({ prompt: 'select_account' });
       } else {
-        // Token exists → attempt silent refresh
         tokenClient.requestAccessToken({ prompt: '' });
       }
     },
 
-    /**
-     * Sign the current user out and revoke the access token.
-     */
     signOut() {
       const token = gapi.client.getToken();
       if (token !== null) {
         try {
           google.accounts.oauth2.revoke(token.access_token, () => {
-            console.info('[AyamAuth] Token revoked.');
+            console.info('[JambuAuth] Token revoked.');
           });
         } catch (err) {
-          console.warn('[AyamAuth] Token revocation failed (non-critical):', err);
+          console.warn('[JambuAuth] Token revocation failed (non-critical):', err);
         }
         gapi.client.setToken(null);
       }
-      localStorage.removeItem('ayam_ledger_token');
+      localStorage.removeItem('jambu_ledger_token');
       currentUser = null;
       if (onAuthChangeCallback) onAuthChangeCallback(false, null);
     },
 
-    /**
-     * Check whether the user currently has a valid token.
-     *
-     * @returns {boolean}
-     */
     isSignedIn() {
-      try {
-        return gapi.client.getToken() !== null;
-      } catch {
-        return false;
-      }
+      try { return gapi.client.getToken() !== null; } catch { return false; }
     },
 
-    /**
-     * Get the current user's profile information.
-     *
-     * @returns {{ name: string, email: string, picture: string }|null}
-     */
-    getUser() {
-      return currentUser;
-    },
+    getUser() { return currentUser; },
 
-    /**
-     * Ensure that a valid access token is available.
-     *
-     * If the current token has expired or is missing, this method silently
-     * requests a new one. This should be called before any API request that
-     * might fail with a 401.
-     *
-     * @param {number} [retryCount=0] – Internal retry counter.
-     * @returns {Promise<string>} Resolves with a valid access token.
-     * @throws {Error} If a new token cannot be obtained.
-     */
     async ensureToken(retryCount = 0) {
       const token = gapi.client.getToken();
-
-      // If we have a token, try a lightweight validation
       if (token && token.access_token) {
         try {
           const res = await fetch(
             'https://www.googleapis.com/oauth2/v3/tokeninfo?' +
               new URLSearchParams({ access_token: token.access_token }),
           );
-          if (res.ok) {
-            return token.access_token; // still valid
-          }
-        } catch {
-          // Token check failed – fall through to refresh
-        }
+          if (res.ok) return token.access_token;
+        } catch { /* fall through */ }
       }
-
-      // Token missing or expired → request a new one silently
       if (retryCount >= MAX_REFRESH_RETRIES) {
-        throw new Error('[AyamAuth] Unable to obtain a valid token after retries.');
+        throw new Error('[JambuAuth] Unable to obtain a valid token after retries.');
       }
-
       if (!tokenClient) {
-        throw new Error('[AyamAuth] Auth not initialised. Call init() first.');
+        throw new Error('[JambuAuth] Auth not initialised. Call init() first.');
       }
-
       try {
         const tokenResponse = await _requestTokenAsync({ prompt: '' });
         gapi.client.setToken(tokenResponse);
         currentUser = await _fetchUserInfo(tokenResponse.access_token);
-
-        // Update persisted session
         const expiresAt = Date.now() + (parseInt(tokenResponse.expires_in, 10) || 3600) * 1000;
-        localStorage.setItem('ayam_ledger_token', JSON.stringify({
+        localStorage.setItem('jambu_ledger_token', JSON.stringify({
           token: tokenResponse,
           expiresAt: expiresAt,
           user: currentUser
         }));
-
         if (onAuthChangeCallback) onAuthChangeCallback(true, currentUser);
         return tokenResponse.access_token;
       } catch (err) {
-        console.warn(`[AyamAuth] Token refresh attempt ${retryCount + 1} failed:`, err);
+        console.warn(`[JambuAuth] Token refresh attempt ${retryCount + 1} failed:`, err);
         return this.ensureToken(retryCount + 1);
       }
     },
 
-    /**
-     * Execute an async API call with automatic 401 retry.
-     *
-     * Wraps any function that returns a promise, catches 401 errors, refreshes
-     * the token, and retries the call once.
-     *
-     * @template T
-     * @param {() => Promise<T>} apiCall – A function that performs the API request.
-     * @returns {Promise<T>}
-     */
     async withTokenRefresh(apiCall) {
       try {
         return await apiCall();
       } catch (err) {
         const status = err?.result?.error?.code || err?.status;
         if (status === 401) {
-          console.info('[AyamAuth] 401 received – refreshing token and retrying…');
+          console.info('[JambuAuth] 401 received – refreshing token and retrying…');
           await this.ensureToken();
           return await apiCall();
         }
@@ -380,13 +233,9 @@ const AyamAuth = (() => {
       }
     },
 
-    /**
-     * Internal: invoked once both gapi and GIS are loaded.
-     * @private
-     */
     _maybeReady() {
       if (gapiInited && gisInited) {
-        console.info('[AyamAuth] Both gapi and GIS ready.');
+        console.info('[JambuAuth] Both gapi and GIS ready.');
         _tryRestoreSession();
       }
     },
