@@ -30,6 +30,8 @@ const JambuApp = (() => {
             await JambuDashboard.load();
             this.populateVendorSuggestions();
             isInitialized = true;
+            // Apply UI restrictions if opened via a shared link with a role.
+            if (typeof JambuShare !== 'undefined') JambuShare.applyRole(JambuShare.getRole());
           } catch (e) {
             console.error('Init error:', e);
             this.showToast('Failed to initialize ledger. Please try again.', 'error');
@@ -58,6 +60,8 @@ const JambuApp = (() => {
       isInitialized = false;
       this._showLogin();
     },
+
+    openShare() { if (typeof JambuShare !== 'undefined') JambuShare.openModal(); },
 
     _showApp(user) {
       const login = $('login-screen');
