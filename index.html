@@ -3,21 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Ayam Goreng Ledger — Stall Financial Tracking</title>
-  <meta name="description" content="Track your fried chicken stall's daily revenue, expenses, and profit with Ayam Goreng Ledger. Free, simple, and powered by Google Sheets.">
+  <title>Jambu Batu Ledger — Stall Financial Tracking</title>
+  <meta name="description" content="Track your guava stall's daily revenue, expenses, and profit with Jambu Batu Ledger. Free, simple, and powered by Google Sheets.">
   <meta name="theme-color" content="#0F172A">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%230f172a' stroke-width='8'><rect x='15' y='15' width='70' height='70' rx='10' fill='%23ffffff'></rect><path d='M30 35h40M30 50h40M30 65h25' stroke-linecap='round'></path></svg>">
 
-  <!-- Tailwind CSS v3 CDN -->
   <script src="https://cdn.tailwindcss.com/3.4.16"></script>
-  <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Custom Styles -->
   <link rel="stylesheet" href="css/style.css">
 
-  <!-- Tailwind Config -->
   <script>
     tailwind.config = {
       theme: {
@@ -25,16 +21,9 @@
           fontFamily: { sans: ['Inter', 'sans-serif'] },
           colors: {
             brand: {
-              50:  '#F8FAFC',
-              100: '#F1F5F9',
-              200: '#E2E8F0',
-              300: '#CBD5E1',
-              400: '#94A3B8',
-              500: '#64748B',
-              600: '#475569',
-              700: '#334155',
-              800: '#1E293B',
-              900: '#0F172A'
+              50:  '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1',
+              400: '#94A3B8', 500: '#64748B', 600: '#475569', 700: '#334155',
+              800: '#1E293B', 900: '#0F172A'
             }
           }
         }
@@ -45,39 +34,24 @@
 
 <body class="font-sans bg-slate-50 text-gray-800 antialiased min-h-screen">
 
-  <!-- ============================================
-       SECTION 1: LOGIN SCREEN
-       ============================================ -->
+  <!-- LOGIN SCREEN -->
   <div id="login-screen" class="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative overflow-hidden">
     <div class="w-full max-w-sm animate-fadeIn">
-      <!-- Login Card -->
       <div class="bg-white rounded-3xl shadow-warm-xl p-8 text-center relative overflow-hidden border border-slate-800/20">
-        <!-- Subtle top accent -->
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-slate-800"></div>
-
-        <!-- Ledger Icon -->
         <div class="mt-4 mb-4 flex justify-center text-slate-800">
-          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
           </svg>
         </div>
-
-        <!-- App Title -->
-        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-1">
-          Ayam Goreng Ledger
-        </h1>
-        <p class="text-slate-500 text-sm font-medium mb-8">
-          Stall Financial Tracking System
-        </p>
-
-        <!-- Sign In Button -->
+        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-1">Jambu Batu Ledger</h1>
+        <p class="text-slate-500 text-sm font-medium mb-8">Guava Stall Financial Tracking System</p>
         <button
           id="btn-sign-in"
-          onclick="AyamApp.signIn()"
+          onclick="JambuApp.signIn()"
           class="w-full flex items-center justify-center gap-3 bg-white border-2 border-slate-200 rounded-2xl px-6 py-4 text-base font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:shadow-lg active:scale-95 transition-all duration-150 group"
         >
-          <!-- Google Logo SVG -->
-          <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -85,8 +59,6 @@
           </svg>
           <span class="group-hover:translate-x-0.5 transition-transform duration-150">Sign in with Google</span>
         </button>
-
-        <!-- Info note -->
         <div class="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400">
           <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -94,986 +66,352 @@
           <span>Data is stored in your private Google Drive</span>
         </div>
       </div>
-
-      <!-- Version footer -->
       <p class="text-center text-slate-600 text-xs mt-6">v1.1 · Professional Ledger System</p>
     </div>
   </div>
 
-
-  <!-- ============================================
-       SECTION 2: APP SCREEN
-       ============================================ -->
+  <!-- APP SCREEN -->
   <div id="app-screen" style="display:none" class="min-h-screen bg-slate-50">
 
-    <!-- ---- Header ---- -->
     <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 safe-top">
       <div class="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto">
-        <!-- Left: Brand -->
         <div class="flex items-center gap-2">
-          <!-- Small SVG Ledger Icon -->
-          <svg class="w-5.5 h-5.5 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg class="w-5.5 h-5.5 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
           </svg>
-          <h2 class="text-base font-bold text-brand-900 tracking-tight uppercase">Ayam Goreng Ledger</h2>
+          <h2 class="text-base font-bold text-brand-900 tracking-tight uppercase">Jambu Batu Ledger</h2>
         </div>
-
-        <!-- Right: Actions -->
         <div class="flex items-center gap-2">
-          <!-- Settings -->
-          <button
-            id="btn-settings"
-            onclick="AyamApp.openSettings()"
-            class="p-2 rounded-xl text-gray-400 hover:text-slate-800 hover:bg-slate-100 active:scale-90 transition-all"
-            aria-label="Settings"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
+          <button id="btn-settings" onclick="JambuApp.openSettings()" class="p-2 rounded-xl text-gray-400 hover:text-slate-800 hover:bg-slate-100 active:scale-90 transition-all" aria-label="Settings">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           </button>
-
-          <!-- User Avatar -->
           <img id="user-avatar" class="w-8 h-8 rounded-full bg-slate-200 border-2 border-slate-300 overflow-hidden flex-shrink-0 object-cover" src="" alt="User" onerror="this.style.display='none'" style="display:none">
-
-
-          <!-- Sign Out -->
-          <button
-            id="btn-sign-out"
-            onclick="AyamApp.signOut()"
-            class="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all"
-            aria-label="Sign out"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-            </svg>
+          <button id="btn-sign-out" onclick="JambuApp.signOut()" class="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all" aria-label="Sign out">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
           </button>
         </div>
       </div>
     </header>
 
-    <!-- ---- Content Area ---- -->
     <main id="content-area" class="px-4 pt-4 pb-28 max-w-2xl mx-auto">
 
-      <!-- ======== VIEW: DASHBOARD ======== -->
+      <!-- DASHBOARD -->
       <div id="view-dashboard" class="animate-fadeIn">
-
-        <!-- Month Navigator -->
         <div class="flex items-center justify-between mb-5">
           <div class="flex items-center gap-2">
-            <button
-              id="btn-prev-month"
-              onclick="AyamDashboard.navigateMonth(-1)"
-              class="p-2.5 rounded-xl bg-white shadow-warm hover:shadow-warm-lg active:scale-90 transition-all text-brand-700"
-              aria-label="Previous month"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
-              </svg>
+            <button id="btn-prev-month" onclick="JambuDashboard.navigateMonth(-1)" class="p-2.5 rounded-xl bg-white shadow-warm hover:shadow-warm-lg active:scale-90 transition-all text-brand-700" aria-label="Previous month">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
             </button>
-
-            <span id="dash-month-label" class="text-lg font-bold text-brand-900 tracking-tight select-none">May 2026</span>
-
-            <button
-              id="btn-next-month"
-              onclick="AyamDashboard.navigateMonth(1)"
-              class="p-2.5 rounded-xl bg-white shadow-warm hover:shadow-warm-lg active:scale-90 transition-all text-brand-700"
-              aria-label="Next month"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
-              </svg>
+            <span id="dash-month-label" class="text-lg font-bold text-brand-900 tracking-tight select-none">June 2026</span>
+            <button id="btn-next-month" onclick="JambuDashboard.navigateMonth(1)" class="p-2.5 rounded-xl bg-white shadow-warm hover:shadow-warm-lg active:scale-90 transition-all text-brand-700" aria-label="Next month">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
             </button>
           </div>
-
-          <button
-            id="btn-generate-statement"
-            onclick="AyamStatement.generate()"
-            class="px-4 py-2.5 text-xs font-bold rounded-xl text-white gradient-btn shadow-warm active:scale-95 transition-all flex items-center gap-1.5"
-          >
-            <!-- Document SVG Icon -->
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
+          <button id="btn-generate-statement" onclick="JambuStatement.generate()" class="px-4 py-2.5 text-xs font-bold rounded-xl text-white gradient-btn shadow-warm active:scale-95 transition-all flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             Statement
           </button>
         </div>
 
-        <!-- Low Stock Alert Banner -->
         <div id="dash-stock-alert" class="hidden mb-4 bg-rose-50 border border-rose-200 rounded-2xl p-4 animate-slideUp">
           <div class="flex items-start gap-3">
-            <svg class="w-5 h-5 text-rose-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
-            <div class="flex-1">
-              <h4 class="text-sm font-bold text-rose-900">Low Stock Warning</h4>
-              <p id="dash-stock-alert-text" class="text-xs text-rose-700 mt-0.5"></p>
-            </div>
-            <button onclick="AyamApp.switchView('inventory')" class="text-xs font-bold text-rose-900 underline hover:text-rose-700">View</button>
+            <svg class="w-5 h-5 text-rose-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <div class="flex-1"><h4 class="text-sm font-bold text-rose-900">Low Stock Warning</h4><p id="dash-stock-alert-text" class="text-xs text-rose-700 mt-0.5"></p></div>
+            <button onclick="JambuApp.switchView('inventory')" class="text-xs font-bold text-rose-900 underline hover:text-rose-700">View</button>
           </div>
         </div>
 
-        <!-- Loading Spinner -->
         <div id="dash-loading" class="hidden flex-col items-center justify-center py-16 gap-3">
           <div class="spinner"></div>
           <span class="text-sm text-slate-600 font-medium">Loading ledger data...</span>
         </div>
 
-        <!-- Metric Cards Grid -->
         <div class="grid grid-cols-2 gap-3 mb-4 stagger-children">
-          <!-- Revenue Card -->
           <div class="gradient-revenue rounded-2xl p-5 shadow-warm card-hover animate-slideUp">
-            <div class="flex items-center gap-1.5 mb-2">
-              <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span class="text-xs font-semibold text-teal-700 uppercase tracking-wider">Revenue</span>
-            </div>
+            <div class="flex items-center gap-1.5 mb-2"><svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="text-xs font-semibold text-teal-700 uppercase tracking-wider">Revenue</span></div>
             <div id="dash-revenue" class="text-2xl font-extrabold text-teal-900 metric-value">RM 0.00</div>
-            <div class="mt-2 flex flex-col gap-0.5 text-[11px] text-teal-600/70">
-              <span>Cash: <span id="dash-revenue-cash" class="font-semibold">RM 0.00</span></span>
-              <span>QR: <span id="dash-revenue-qr" class="font-semibold">RM 0.00</span></span>
-            </div>
+            <div class="mt-2 flex flex-col gap-0.5 text-[11px] text-teal-600/70"><span>Cash: <span id="dash-revenue-cash" class="font-semibold">RM 0.00</span></span><span>QR: <span id="dash-revenue-qr" class="font-semibold">RM 0.00</span></span></div>
           </div>
-
-          <!-- Expenses Card -->
           <div class="gradient-expenses rounded-2xl p-5 shadow-warm card-hover animate-slideUp">
-            <div class="flex items-center gap-1.5 mb-2">
-              <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-              </svg>
-              <span class="text-xs font-semibold text-rose-700 uppercase tracking-wider">Expenses</span>
-            </div>
+            <div class="flex items-center gap-1.5 mb-2"><svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg><span class="text-xs font-semibold text-rose-700 uppercase tracking-wider">Expenses</span></div>
             <div id="dash-expenses" class="text-2xl font-extrabold text-rose-900 metric-value">RM 0.00</div>
-            <div class="mt-2 flex flex-col gap-0.5 text-[11px] text-rose-600/70">
-              <span>COGS: <span id="dash-expenses-cogs" class="font-semibold">RM 0.00</span></span>
-              <span>OPEX: <span id="dash-expenses-opex" class="font-semibold">RM 0.00</span></span>
-            </div>
+            <div class="mt-2 flex flex-col gap-0.5 text-[11px] text-rose-600/70"><span>COGS: <span id="dash-expenses-cogs" class="font-semibold">RM 0.00</span></span><span>OPEX: <span id="dash-expenses-opex" class="font-semibold">RM 0.00</span></span></div>
           </div>
-
-          <!-- Gross Profit Card -->
           <div class="gradient-revenue rounded-2xl p-5 shadow-warm card-hover animate-slideUp">
-            <div class="flex items-center gap-1.5 mb-2">
-              <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-              </svg>
-              <span class="text-xs font-semibold text-teal-700 uppercase tracking-wider">Gross Profit</span>
-            </div>
+            <div class="flex items-center gap-1.5 mb-2"><svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg><span class="text-xs font-semibold text-teal-700 uppercase tracking-wider">Gross Profit</span></div>
             <div id="dash-gross-profit" class="text-2xl font-extrabold text-teal-900 metric-value">RM 0.00</div>
-            <div class="mt-2 flex flex-col gap-0.5 text-[11px] text-teal-600/70">
-              <span>Margin: <span id="dash-gross-margin" class="font-bold">0.0%</span></span>
-            </div>
+            <div class="mt-2 flex flex-col gap-0.5 text-[11px] text-teal-600/70"><span>Margin: <span id="dash-gross-margin" class="font-bold">0.0%</span></span></div>
           </div>
-
-          <!-- Accounts Payable Card -->
           <div class="gradient-expenses rounded-2xl p-5 shadow-warm card-hover animate-slideUp">
-            <div class="flex items-center gap-1.5 mb-2">
-              <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
-              <span class="text-xs font-semibold text-rose-700 uppercase tracking-wider">Payables</span>
-            </div>
+            <div class="flex items-center gap-1.5 mb-2"><svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg><span class="text-xs font-semibold text-rose-700 uppercase tracking-wider">Payables</span></div>
             <div id="dash-payable" class="text-2xl font-extrabold text-rose-900 metric-value">RM 0.00</div>
-            <div class="mt-2 flex flex-col gap-0.5 text-[11px] text-rose-600/70">
-              <span>Unpaid bills to suppliers</span>
-            </div>
+            <div class="mt-2 flex flex-col gap-0.5 text-[11px] text-rose-600/70"><span>Unpaid bills to suppliers</span></div>
           </div>
         </div>
 
-        <!-- Net Profit Card (Full Width) -->
         <div class="gradient-profit rounded-2xl p-6 shadow-warm-lg card-hover animate-slideUp mb-5 relative overflow-hidden">
           <div class="relative">
-            <div class="flex items-center gap-2 mb-2">
-              <svg class="w-5 h-5 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-              </svg>
-              <span class="text-sm font-bold text-slate-800 uppercase tracking-wider">Net Profit</span>
-            </div>
+            <div class="flex items-center gap-2 mb-2"><svg class="w-5 h-5 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span class="text-sm font-bold text-slate-800 uppercase tracking-wider">Net Profit</span></div>
             <div id="dash-profit" class="text-4xl font-extrabold text-slate-900 metric-value mb-4">RM 0.00</div>
-
-            <!-- Progress Bar Section -->
             <div class="space-y-2">
-              <div class="flex items-center justify-between text-xs font-medium">
-                <span id="dash-target" class="text-slate-600">Target: RM 2,000</span>
-                <span id="dash-progress-pct" class="text-slate-800 font-bold">0%</span>
-              </div>
-              <div class="progress-track h-3 bg-slate-200/50">
-                <div id="dash-progress-bar" class="progress-fill-bar h-full progress-animated" style="width: 0%"></div>
-              </div>
+              <div class="flex items-center justify-between text-xs font-medium"><span id="dash-target" class="text-slate-600">Target: RM 2,000</span><span id="dash-progress-pct" class="text-slate-800 font-bold">0%</span></div>
+              <div class="progress-track h-3 bg-slate-200/50"><div id="dash-progress-bar" class="progress-fill-bar h-full progress-animated" style="width:0%"></div></div>
             </div>
           </div>
         </div>
 
-        <!-- Expense Category Breakdown -->
         <div class="bg-white rounded-2xl shadow-warm p-5 mb-4 animate-fadeIn">
           <h3 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
-            </svg>
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
             Where the money went
           </h3>
-          <div id="dash-categories" class="space-y-3">
-            <!-- Populated by JS -->
-            <div class="empty-state text-sm py-8">
-              <svg class="w-8 h-8 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-              No expense data yet
-            </div>
-          </div>
+          <div id="dash-categories" class="space-y-3"><div class="empty-state text-sm py-8">No expense data yet</div></div>
         </div>
 
-        <!-- Recent Transactions -->
         <div class="bg-white rounded-2xl shadow-warm p-5 animate-fadeIn">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
-              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               Transaction History
             </h3>
-            
-            <!-- Filter & Sort Controls -->
             <div class="flex flex-wrap items-center gap-2 text-xs">
-              <!-- Search -->
-              <input
-                id="tx-search"
-                type="text"
-                placeholder="Search..."
-                oninput="AyamDashboard.filterRecent()"
-                class="px-2.5 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:bg-white focus:border-brand-500 transition-all text-xs w-28 sm:w-36"
-              >
-              
-              <!-- Type Filter -->
-              <select
-                id="tx-filter-type"
-                onchange="AyamDashboard.filterRecent()"
-                class="px-2 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:bg-white text-xs text-gray-600 cursor-pointer"
-              >
-                <option value="all">All Types</option>
-                <option value="sale">Sales</option>
-                <option value="expense">Expenses</option>
+              <input id="tx-search" type="text" placeholder="Search..." oninput="JambuDashboard.filterRecent()" class="px-2.5 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:bg-white focus:border-brand-500 transition-all text-xs w-28 sm:w-36">
+              <select id="tx-filter-type" onchange="JambuDashboard.filterRecent()" class="px-2 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:bg-white text-xs text-gray-600 cursor-pointer">
+                <option value="all">All Types</option><option value="sale">Sales</option><option value="expense">Expenses</option>
               </select>
-
-              <!-- Sort Option -->
-              <select
-                id="tx-sort"
-                onchange="AyamDashboard.filterRecent()"
-                class="px-2 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:bg-white text-xs text-gray-600 cursor-pointer"
-              >
-                <option value="time-desc">Newest First</option>
-                <option value="time-asc">Oldest First</option>
-                <option value="amount-desc">Amount: High to Low</option>
-                <option value="amount-asc">Amount: Low to High</option>
+              <select id="tx-sort" onchange="JambuDashboard.filterRecent()" class="px-2 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg outline-none focus:bg-white text-xs text-gray-600 cursor-pointer">
+                <option value="time-desc">Newest First</option><option value="time-asc">Oldest First</option><option value="amount-desc">Amount: High to Low</option><option value="amount-asc">Amount: Low to High</option>
               </select>
             </div>
           </div>
-
-          <!-- Scrollable list wrapper -->
           <div id="dash-recent-container" class="max-h-[350px] overflow-y-auto pr-1">
-            <div id="dash-recent" class="space-y-2">
-              <div class="empty-state text-sm py-8">
-                <svg class="w-8 h-8 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                </svg>
-                No entries yet — start recording!
-              </div>
-            </div>
+            <div id="dash-recent" class="space-y-2"><div class="empty-state text-sm py-8">No entries yet — start recording!</div></div>
           </div>
         </div>
       </div>
 
-      <!-- ======== VIEW: SALES FORM ======== -->
+      <!-- SALES FORM -->
       <div id="view-sales" class="hidden animate-fadeIn">
         <div class="mb-6">
           <h2 class="text-2xl font-extrabold text-brand-900 flex items-center gap-2">
-            <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+            <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             Record Sales
           </h2>
-          <p class="text-sm text-brand-600/70 mt-1">Log today's revenue from your stall</p>
+          <p class="text-sm text-brand-600/70 mt-1">Log today's guava stall revenue</p>
         </div>
-
         <div class="bg-white rounded-2xl shadow-warm-lg p-6 space-y-5">
-          <!-- Date -->
-          <div class="form-group">
-            <label for="sales-date" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Date
-            </label>
-            <input
-              type="date"
-              id="sales-date"
-              class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-            >
-          </div>
-
-          <!-- Cash Revenue -->
-          <div class="form-group">
-            <label for="sales-cash" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Cash Revenue
-            </label>
-            <div class="input-prefix">
-              <input
-                type="number"
-                id="sales-cash"
-                inputmode="decimal"
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-                class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-              >
-            </div>
-          </div>
-
-          <!-- QR Revenue -->
-          <div class="form-group">
-            <label for="sales-qr" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              QR / DuitNow Revenue
-            </label>
-            <div class="input-prefix">
-              <input
-                type="number"
-                id="sales-qr"
-                inputmode="decimal"
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-                class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-              >
-            </div>
-          </div>
-
-          <!-- Notes -->
-          <div class="form-group">
-            <label for="sales-notes" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Notes
-            </label>
-            <textarea
-              id="sales-notes"
-              placeholder="e.g. Rainy day, Pasar Malam extra flock"
-              rows="2"
-              class="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none resize-none"
-            ></textarea>
-          </div>
-
-          <!-- Save Button -->
-          <button
-            id="btn-save-sales"
-            onclick="AyamApp.saveSales()"
-            class="w-full py-4 text-xl font-bold rounded-2xl text-white gradient-btn shadow-warm-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 mt-2"
-          >
-            Save Sales
-          </button>
+          <div class="form-group"><label for="sales-date" class="block text-sm font-semibold text-gray-700 mb-1.5">Date</label><input type="date" id="sales-date" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
+          <div class="form-group"><label for="sales-cash" class="block text-sm font-semibold text-gray-700 mb-1.5">Cash Revenue</label><div class="input-prefix"><input type="number" id="sales-cash" inputmode="decimal" placeholder="0.00" step="0.01" min="0" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div></div>
+          <div class="form-group"><label for="sales-qr" class="block text-sm font-semibold text-gray-700 mb-1.5">QR / DuitNow Revenue</label><div class="input-prefix"><input type="number" id="sales-qr" inputmode="decimal" placeholder="0.00" step="0.01" min="0" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div></div>
+          <div class="form-group"><label for="sales-notes" class="block text-sm font-semibold text-gray-700 mb-1.5">Notes</label><textarea id="sales-notes" placeholder="e.g. Rainy day, Pasar Malam good harvest" rows="2" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none resize-none"></textarea></div>
+          <button id="btn-save-sales" onclick="JambuApp.saveSales()" class="w-full py-4 text-xl font-bold rounded-2xl text-white gradient-btn shadow-warm-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 mt-2">Save Sales</button>
         </div>
       </div>
 
-      <!-- ======== VIEW: EXPENSE FORM ======== -->
+      <!-- EXPENSE FORM -->
       <div id="view-expenses" class="hidden animate-fadeIn">
         <div class="mb-6">
           <h2 class="text-2xl font-extrabold text-brand-900 flex items-center gap-2">
-            <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
+            <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             Log Expense
           </h2>
           <p class="text-sm text-brand-600/70 mt-1">Track every ringgit that goes out</p>
         </div>
-
         <div class="bg-white rounded-2xl shadow-warm-lg p-6 space-y-5">
-          <!-- Date -->
+          <div class="form-group"><label for="expense-date" class="block text-sm font-semibold text-gray-700 mb-1.5">Date</label><input type="date" id="expense-date" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
           <div class="form-group">
-            <label for="expense-date" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Date
-            </label>
-            <input
-              type="date"
-              id="expense-date"
-              class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-            >
-          </div>
-
-          <!-- Category -->
-          <div class="form-group">
-            <label for="expense-category" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Category
-            </label>
-            <select
-              id="expense-category"
-              class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none cursor-pointer"
-            >
+            <label for="expense-category" class="block text-sm font-semibold text-gray-700 mb-1.5">Category</label>
+            <select id="expense-category" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none cursor-pointer">
               <option value="" disabled selected>Select category...</option>
-              <option value="Raw Chicken">Raw Chicken</option>
-              <option value="Cooking Oil/Gas">Cooking Oil / Gas</option>
-              <option value="Flour/Spices">Flour / Spices</option>
+              <option value="Fresh Guava">Fresh Guava</option>
+              <option value="Fertilizer/Pesticide">Fertilizer / Pesticide</option>
+              <option value="Seedlings/Soil">Seedlings / Soil</option>
               <option value="Rent/Stall">Rent / Stall</option>
               <option value="Packaging">Packaging</option>
               <option value="Transport">Transport</option>
               <option value="Others">Others</option>
             </select>
           </div>
-
-          <!-- Type (Direct COGS vs Indirect OPEX) -->
           <div class="form-group">
-            <label for="expense-type" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Expense Classification
-            </label>
-            <select
-              id="expense-type"
-              class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none cursor-pointer"
-            >
-              <option value="Direct (COGS)" selected>Direct (COGS) — Chicken, oil, flour, packets</option>
-              <option value="Indirect (OPEX)">Indirect (OPEX) — Rent, gas, utilities, wages</option>
+            <label for="expense-type" class="block text-sm font-semibold text-gray-700 mb-1.5">Expense Classification</label>
+            <select id="expense-type" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none cursor-pointer">
+              <option value="Direct (COGS)" selected>Direct (COGS) — Guava, fertilizer, seedlings, packaging</option>
+              <option value="Indirect (OPEX)">Indirect (OPEX) — Rent, transport, utilities, wages</option>
             </select>
           </div>
-
-          <!-- Vendor / Supplier -->
+          <div class="form-group"><label for="expense-vendor" class="block text-sm font-semibold text-gray-700 mb-1.5">Vendor / Supplier</label><input type="text" id="expense-vendor" list="vendor-suggestions" placeholder="e.g. orchard name, supplier" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"><datalist id="vendor-suggestions"></datalist></div>
           <div class="form-group">
-            <label for="expense-vendor" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Vendor / Supplier
-            </label>
-            <input
-              type="text"
-              id="expense-vendor"
-              list="vendor-suggestions"
-              placeholder="e.g. wet market name, supplier"
-              class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-            >
-            <datalist id="vendor-suggestions">
-              <!-- Populated dynamically by JS -->
-            </datalist>
-          </div>
-
-          <!-- Payment Status -->
-          <div class="form-group">
-            <label for="expense-status" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Payment Status
-            </label>
-            <select
-              id="expense-status"
-              class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none cursor-pointer"
-            >
+            <label for="expense-status" class="block text-sm font-semibold text-gray-700 mb-1.5">Payment Status</label>
+            <select id="expense-status" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none cursor-pointer">
               <option value="Paid" selected>Paid</option>
               <option value="Unpaid">Unpaid (Accounts Payable)</option>
             </select>
           </div>
-
-          <!-- Amount -->
-          <div class="form-group">
-            <label for="expense-amount" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Amount
-            </label>
-            <div class="input-prefix">
-              <input
-                type="number"
-                id="expense-amount"
-                inputmode="decimal"
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-                class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-              >
-            </div>
-          </div>
-
-          <!-- Notes -->
-          <div class="form-group">
-            <label for="expense-notes" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Notes
-            </label>
-            <textarea
-              id="expense-notes"
-              placeholder="e.g. Bought 20kg from Pak Ali"
-              rows="2"
-              class="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none resize-none"
-            ></textarea>
-          </div>
-
-          <!-- Save Button -->
-          <button
-            id="btn-save-expense"
-            onclick="AyamApp.saveExpense()"
-            class="w-full py-4 text-xl font-bold rounded-2xl text-white gradient-btn shadow-warm-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 mt-2"
-          >
-            Save Expense
-          </button>
+          <div class="form-group"><label for="expense-amount" class="block text-sm font-semibold text-gray-700 mb-1.5">Amount</label><div class="input-prefix"><input type="number" id="expense-amount" inputmode="decimal" placeholder="0.00" step="0.01" min="0" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div></div>
+          <div class="form-group"><label for="expense-notes" class="block text-sm font-semibold text-gray-700 mb-1.5">Notes</label><textarea id="expense-notes" placeholder="e.g. Bought 50kg of guava from Pak Rahman" rows="2" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none resize-none"></textarea></div>
+          <button id="btn-save-expense" onclick="JambuApp.saveExpense()" class="w-full py-4 text-xl font-bold rounded-2xl text-white gradient-btn shadow-warm-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 mt-2">Save Expense</button>
         </div>
       </div>
 
-      <!-- ======== VIEW: INVENTORY ======== -->
+      <!-- INVENTORY -->
       <div id="view-inventory" class="hidden animate-fadeIn">
         <div class="mb-6 flex items-center justify-between">
           <div>
             <h2 class="text-2xl font-extrabold text-brand-900 flex items-center gap-2">
-              <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-              </svg>
+              <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
               Inventory
             </h2>
             <p class="text-sm text-brand-600/70 mt-1">Manage stock and get low stock alerts</p>
           </div>
-          <button
-            onclick="AyamInventory.openModal()"
-            class="px-4 py-2.5 text-sm font-bold rounded-xl text-white gradient-btn shadow-warm active:scale-95 transition-all flex items-center gap-1.5"
-          >
-            Add Item
-          </button>
+          <button onclick="JambuInventory.openModal()" class="px-4 py-2.5 text-sm font-bold rounded-xl text-white gradient-btn shadow-warm active:scale-95 transition-all flex items-center gap-1.5">Add Item</button>
         </div>
-
-        <!-- Search & Quick Filters -->
         <div class="mb-4 bg-white rounded-2xl shadow-warm p-4 flex gap-3">
           <div class="relative flex-1">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-            <input
-              type="text"
-              id="inventory-search"
-              oninput="AyamInventory.filterItems()"
-              placeholder="Search stock items..."
-              class="w-full pl-9 pr-4 py-2 bg-slate-50/30 border border-slate-200/50 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all outline-none"
-            >
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input type="text" id="inventory-search" oninput="JambuInventory.filterItems()" placeholder="Search stock items..." class="w-full pl-9 pr-4 py-2 bg-slate-50/30 border border-slate-200/50 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all outline-none">
           </div>
         </div>
-
-        <!-- Inventory List Loading -->
-        <div id="inventory-loading" class="hidden flex-col items-center justify-center py-12 gap-3">
-          <div class="spinner"></div>
-          <span class="text-sm text-brand-600 font-medium">Checking stock...</span>
-        </div>
-
-        <!-- Inventory List Card -->
-        <div class="bg-white rounded-2xl shadow-warm p-5">
-          <div id="inventory-list" class="space-y-4">
-            <div class="empty-state text-sm py-8">
-              <svg class="w-8 h-8 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-              </svg>
-              No items in stock. Add your first item!
-            </div>
-          </div>
-        </div>
+        <div id="inventory-loading" class="hidden flex-col items-center justify-center py-12 gap-3"><div class="spinner"></div><span class="text-sm text-brand-600 font-medium">Checking stock...</span></div>
+        <div class="bg-white rounded-2xl shadow-warm p-5"><div id="inventory-list" class="space-y-4"><div class="empty-state text-sm py-8">No items in stock. Add your first item!</div></div></div>
       </div>
 
     </main>
 
-    <!-- ---- Bottom Navigation ---- -->
     <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md bottom-nav safe-bottom">
       <div class="flex items-stretch max-w-2xl mx-auto">
-        <!-- Dashboard Tab -->
-        <button
-          id="nav-dashboard"
-          onclick="AyamApp.switchView('dashboard')"
-          class="nav-tab active flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-brand-600"
-        >
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-          </svg>
+        <button id="nav-dashboard" onclick="JambuApp.switchView('dashboard')" class="nav-tab active flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-brand-600">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
           <span class="text-[10px] font-semibold tracking-wide">Dashboard</span>
         </button>
-
-        <!-- Sales Tab -->
-        <button
-          id="nav-sales"
-          onclick="AyamApp.switchView('sales')"
-          class="nav-tab flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-gray-400"
-        >
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
+        <button id="nav-sales" onclick="JambuApp.switchView('sales')" class="nav-tab flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-gray-400">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           <span class="text-[10px] font-semibold tracking-wide">Sales</span>
         </button>
-
-        <!-- Expenses Tab -->
-        <button
-          id="nav-expenses"
-          onclick="AyamApp.switchView('expenses')"
-          class="nav-tab flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-gray-400"
-        >
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-          </svg>
+        <button id="nav-expenses" onclick="JambuApp.switchView('expenses')" class="nav-tab flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-gray-400">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
           <span class="text-[10px] font-semibold tracking-wide">Expenses</span>
         </button>
-
-        <!-- Inventory Tab -->
-        <button
-          id="nav-inventory"
-          onclick="AyamApp.switchView('inventory')"
-          class="nav-tab flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-gray-400"
-        >
-          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-          </svg>
+        <button id="nav-inventory" onclick="JambuApp.switchView('inventory')" class="nav-tab flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-gray-400">
+          <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
           <span class="text-[10px] font-semibold tracking-wide">Inventory</span>
         </button>
       </div>
     </nav>
   </div>
 
-
-  <!-- ============================================
-       SECTION 3: SETTINGS MODAL
-       ============================================ -->
+  <!-- SETTINGS MODAL -->
   <div id="settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-6 backdrop-blur-modal">
     <div class="bg-white rounded-2xl shadow-warm-xl w-full max-w-sm p-6 animate-slideUp relative">
-      <!-- Close Button -->
-      <button
-        id="btn-close-settings"
-        onclick="AyamApp.closeSettings()"
-        class="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:scale-90 transition-all"
-        aria-label="Close settings"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
+      <button id="btn-close-settings" onclick="JambuApp.closeSettings()" class="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:scale-90 transition-all" aria-label="Close settings">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
-
-      <!-- Title -->
       <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
-        <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        </svg>
+        <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         Settings
       </h3>
-
       <div class="space-y-5">
-        <!-- Target Profit -->
-        <div class="form-group">
-          <label for="settings-target" class="block text-sm font-semibold text-gray-700 mb-1.5">
-            Monthly Profit Target (RM)
-          </label>
-          <div class="input-prefix">
-            <input
-              type="number"
-              id="settings-target"
-              value="2000"
-              min="0"
-              step="100"
-              class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-            >
-          </div>
-        </div>
-
-        <!-- Save Settings Button -->
-        <button
-          id="btn-save-settings"
-          onclick="AyamApp.saveSettings()"
-          class="w-full py-3.5 text-base font-bold rounded-xl text-white gradient-btn shadow-warm active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
-        >
-          Save Settings
-        </button>
-
-        <!-- Stress Test Button -->
-        <button
-          id="btn-trigger-stress-test"
-          onclick="AyamTest.runStressTest()"
-          class="w-full py-3 text-sm font-semibold rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200/80 active:scale-95 border border-slate-200 transition-all flex items-center justify-center gap-2"
-        >
-          Run System Stress Test (5x)
-        </button>
+        <div class="form-group"><label for="settings-target" class="block text-sm font-semibold text-gray-700 mb-1.5">Monthly Profit Target (RM)</label><div class="input-prefix"><input type="number" id="settings-target" value="2000" min="0" step="100" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div></div>
+        <button id="btn-save-settings" onclick="JambuApp.saveSettings()" class="w-full py-3.5 text-base font-bold rounded-xl text-white gradient-btn shadow-warm active:scale-95 transition-all duration-200 flex items-center justify-center gap-2">Save Settings</button>
+        <button id="btn-trigger-stress-test" onclick="JambuTest.runStressTest()" class="w-full py-3 text-sm font-semibold rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200/80 active:scale-95 border border-slate-200 transition-all flex items-center justify-center gap-2">Run System Stress Test (5x)</button>
       </div>
     </div>
   </div>
 
-  <!-- ============================================
-       SECTION 3.2: STRESS TEST LOG MODAL
-       ============================================ -->
+  <!-- STRESS TEST MODAL -->
   <div id="test-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-6 backdrop-blur-modal">
     <div class="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg p-6 animate-slideUp relative border border-gray-800">
-      <!-- Close Button -->
-      <button
-        id="btn-close-test"
-        onclick="document.getElementById('test-modal').classList.add('hidden')"
-        class="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 active:scale-90 transition-all"
-        aria-label="Close stress test"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
+      <button id="btn-close-test" onclick="document.getElementById('test-modal').classList.add('hidden')" class="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 active:scale-90 transition-all" aria-label="Close stress test">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
-
-      <!-- Title -->
       <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
-        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
-        </svg>
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
         Stress Test Diagnostics
       </h3>
-
-      <!-- Log Terminal -->
-      <pre
-        id="test-log"
-        class="w-full h-80 p-4 bg-black rounded-xl text-xs font-mono text-emerald-400 overflow-y-auto border border-gray-800 whitespace-pre-wrap leading-relaxed select-text"
-      >Initializing diagnostics...</pre>
-
-      <div class="text-[10px] text-gray-500 mt-3 italic text-center">
-        Note: Stress tests write, modify, and delete rows to verify Sheets API boundaries. All test data will be automatically cleaned up.
-      </div>
+      <pre id="test-log" class="w-full h-80 p-4 bg-black rounded-xl text-xs font-mono text-emerald-400 overflow-y-auto border border-gray-800 whitespace-pre-wrap leading-relaxed select-text">Initializing diagnostics...</pre>
+      <div class="text-[10px] text-gray-500 mt-3 italic text-center">Stress tests write, modify, and delete rows to verify Sheets API boundaries. All test data is automatically cleaned up.</div>
     </div>
   </div>
 
-  <!-- ============================================
-       SECTION 3.5: INVENTORY MODAL
-       ============================================ -->
+  <!-- INVENTORY MODAL -->
   <div id="inventory-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-6 backdrop-blur-modal">
     <div class="bg-white rounded-2xl shadow-warm-xl w-full max-w-sm p-6 animate-slideUp relative">
-      <!-- Close Button -->
-      <button
-        onclick="AyamInventory.closeModal()"
-        class="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:scale-90 transition-all"
-        aria-label="Close inventory modal"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
+      <button onclick="JambuInventory.closeModal()" class="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:scale-90 transition-all" aria-label="Close inventory modal">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
-
-      <!-- Title -->
       <h3 id="inventory-modal-title" class="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
-        <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-        </svg>
+        <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
         Add Inventory Item
       </h3>
-
-      <form id="inventory-form" onsubmit="event.preventDefault(); AyamInventory.saveItem();" class="space-y-4">
-        <!-- Hidden input for tracking old item name when editing -->
+      <form id="inventory-form" onsubmit="event.preventDefault(); JambuInventory.saveItem();" class="space-y-4">
         <input type="hidden" id="inventory-old-name">
-
-        <!-- Item Name -->
-        <div class="form-group">
-          <label for="inventory-name" class="block text-xs font-bold text-gray-700 mb-1">
-            Item Name
-          </label>
-          <input
-            type="text"
-            id="inventory-name"
-            placeholder="e.g. Raw Chicken, Garlic, Chili Sauce"
-            required
-            class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-          >
-        </div>
-
+        <div class="form-group"><label for="inventory-name" class="block text-xs font-bold text-gray-700 mb-1">Item Name</label><input type="text" id="inventory-name" placeholder="e.g. Fresh Guava, Fertilizer, Packaging" required class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
         <div class="grid grid-cols-2 gap-3">
-          <!-- Quantity -->
-          <div class="form-group">
-            <label for="inventory-qty" class="block text-xs font-bold text-gray-700 mb-1">
-              Quantity
-            </label>
-            <input
-              type="number"
-              id="inventory-qty"
-              inputmode="decimal"
-              placeholder="0.00"
-              step="0.01"
-              min="0"
-              required
-              class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-            >
-          </div>
-
-          <!-- Unit -->
-          <div class="form-group">
-            <label for="inventory-unit" class="block text-xs font-bold text-gray-700 mb-1">
-              Unit
-            </label>
-            <input
-              type="text"
-              id="inventory-unit"
-              placeholder="e.g. kg, pcs, bottles"
-              required
-              class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-            >
-          </div>
+          <div class="form-group"><label for="inventory-qty" class="block text-xs font-bold text-gray-700 mb-1">Quantity</label><input type="number" id="inventory-qty" inputmode="decimal" placeholder="0.00" step="0.01" min="0" required class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
+          <div class="form-group"><label for="inventory-unit" class="block text-xs font-bold text-gray-700 mb-1">Unit</label><input type="text" id="inventory-unit" placeholder="e.g. kg, pcs, bags" required class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
         </div>
-
-        <!-- Min Alert Quantity -->
-        <div class="form-group">
-          <label for="inventory-alert" class="block text-xs font-bold text-gray-700 mb-1">
-            Min Alert Quantity (Low stock limit)
-          </label>
-          <input
-            type="number"
-            id="inventory-alert"
-            inputmode="decimal"
-            placeholder="0.00"
-            step="0.01"
-            min="0"
-            class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"
-          >
-        </div>
-
-        <!-- Notes -->
-        <div class="form-group">
-          <label for="inventory-notes" class="block text-xs font-bold text-gray-700 mb-1">
-            Notes
-          </label>
-          <textarea
-            id="inventory-notes"
-            placeholder="e.g. supplier info, storage location"
-            rows="2"
-            class="w-full px-4 py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none resize-none"
-          ></textarea>
-        </div>
-
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          id="btn-save-inventory"
-          class="w-full py-3 text-base font-bold rounded-xl text-white gradient-btn shadow-warm active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 mt-4"
-        >
-          Save Item
-        </button>
+        <div class="form-group"><label for="inventory-alert" class="block text-xs font-bold text-gray-700 mb-1">Min Alert Quantity (Low stock limit)</label><input type="number" id="inventory-alert" inputmode="decimal" placeholder="0.00" step="0.01" min="0" class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
+        <div class="form-group"><label for="inventory-notes" class="block text-xs font-bold text-gray-700 mb-1">Notes</label><textarea id="inventory-notes" placeholder="e.g. supplier info, storage location" rows="2" class="w-full px-4 py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none resize-none"></textarea></div>
+        <button type="submit" id="btn-save-inventory" class="w-full py-3 text-base font-bold rounded-xl text-white gradient-btn shadow-warm active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 mt-4">Save Item</button>
       </form>
     </div>
   </div>
 
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4"></div>
 
-  <!-- ============================================
-       SECTION 4: TOAST CONTAINER
-       ============================================ -->
-  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4">
-    <!-- Toasts injected here by JS -->
-  </div>
-
-  <!-- ============================================
-       SECTION 5: ACCOUNT STATEMENT VIEW
-       ============================================ -->
+  <!-- STATEMENT VIEW -->
   <div id="view-statement" style="display:none" class="min-h-screen bg-neutral-100 py-8 px-4 print:bg-white print:py-0 print:px-0">
     <div class="max-w-2xl mx-auto">
-      <!-- Control Bar (hidden on print) -->
       <div class="flex items-center justify-between mb-6 print:hidden">
-        <button
-          onclick="AyamStatement.close()"
-          class="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:shadow active:scale-95 transition-all"
-        >
-          Back to App
-        </button>
-
-        <button
-          onclick="AyamStatement.print()"
-          class="flex items-center gap-1.5 px-4 py-2 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 hover:shadow active:scale-95 transition-all gradient-btn"
-        >
-          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-          </svg>
+        <button onclick="JambuStatement.close()" class="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:shadow active:scale-95 transition-all">Back to App</button>
+        <button onclick="JambuStatement.print()" class="flex items-center gap-1.5 px-4 py-2 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 hover:shadow active:scale-95 transition-all gradient-btn">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
           Print Statement
         </button>
       </div>
-
-      <!-- Formal Statement Paper -->
       <div class="bg-white border border-gray-200 rounded-3xl p-8 shadow-warm-lg print:border-none print:shadow-none print:p-0 print:m-0">
-        <!-- Business Header -->
         <div class="text-center border-b border-gray-200 pb-6 mb-6">
-          <h1 class="text-2xl font-black tracking-tight text-gray-900 uppercase">Ayam Goreng Ledger</h1>
-          <p class="text-xs font-semibold text-gray-500 tracking-wider uppercase mt-1">Stall Financial Report</p>
-          <div class="mt-4 inline-block px-3 py-1 bg-neutral-100 rounded-full print:bg-none">
-            <span class="text-xs font-bold text-gray-700 uppercase" id="stmt-period-label">May 2026</span>
-          </div>
+          <h1 class="text-2xl font-black tracking-tight text-gray-900 uppercase">Jambu Batu Ledger</h1>
+          <p class="text-xs font-semibold text-gray-500 tracking-wider uppercase mt-1">Guava Stall Financial Report</p>
+          <div class="mt-4 inline-block px-3 py-1 bg-neutral-100 rounded-full print:bg-none"><span class="text-xs font-bold text-gray-700 uppercase" id="stmt-period-label">June 2026</span></div>
         </div>
-
-        <div class="mb-4">
-          <h2 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Statement of Profit and Loss</h2>
-        </div>
-
-        <!-- Profit and Loss Table (Accounting Style) -->
+        <div class="mb-4"><h2 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Statement of Profit and Loss</h2></div>
         <div class="space-y-4 mb-8">
-          <!-- Revenue Section -->
           <div class="border-b border-neutral-100 pb-2">
-            <div class="flex justify-between font-bold text-gray-900 text-sm uppercase">
-              <span>Gross Revenue</span>
-              <span id="stmt-revenue-total">RM 0.00</span>
-            </div>
+            <div class="flex justify-between font-bold text-gray-900 text-sm uppercase"><span>Gross Revenue</span><span id="stmt-revenue-total">RM 0.00</span></div>
             <div class="pl-4 mt-1 space-y-1 text-xs text-gray-500 font-medium">
-              <div class="flex justify-between">
-                <span>Cash Sales</span>
-                <span id="stmt-revenue-cash">RM 0.00</span>
-              </div>
-              <div class="flex justify-between">
-                <span>QR / DuitNow Sales</span>
-                <span id="stmt-revenue-qr">RM 0.00</span>
-              </div>
+              <div class="flex justify-between"><span>Cash Sales</span><span id="stmt-revenue-cash">RM 0.00</span></div>
+              <div class="flex justify-between"><span>QR / DuitNow Sales</span><span id="stmt-revenue-qr">RM 0.00</span></div>
             </div>
           </div>
-
-          <!-- COGS Section -->
           <div class="border-b border-neutral-100 pb-2">
-            <div class="flex justify-between font-bold text-gray-900 text-sm uppercase">
-              <span>Less: Cost of Goods Sold (COGS)</span>
-              <span id="stmt-cogs-total">RM 0.00</span>
-            </div>
-            <div id="stmt-cogs-breakdown" class="pl-4 mt-1 space-y-1 text-xs text-gray-500 font-medium">
-              <!-- Dynamically populated categories -->
-            </div>
+            <div class="flex justify-between font-bold text-gray-900 text-sm uppercase"><span>Less: Cost of Goods Sold (COGS)</span><span id="stmt-cogs-total">RM 0.00</span></div>
+            <div id="stmt-cogs-breakdown" class="pl-4 mt-1 space-y-1 text-xs text-gray-500 font-medium"></div>
           </div>
-
-          <!-- Gross Profit Row -->
           <div class="border-b border-neutral-200 pb-2 bg-neutral-50 px-3 py-2 rounded-xl print:bg-none print:px-0">
-            <div class="flex justify-between font-extrabold text-gray-900 text-sm uppercase">
-              <span>Gross Profit</span>
-              <span id="stmt-gross-profit">RM 0.00</span>
-            </div>
-            <div class="flex justify-between text-[11px] text-gray-500 font-semibold pl-1 mt-0.5">
-              <span>Gross Margin</span>
-              <span id="stmt-gross-margin">0.0%</span>
-            </div>
+            <div class="flex justify-between font-extrabold text-gray-900 text-sm uppercase"><span>Gross Profit</span><span id="stmt-gross-profit">RM 0.00</span></div>
+            <div class="flex justify-between text-[11px] text-gray-500 font-semibold pl-1 mt-0.5"><span>Gross Margin</span><span id="stmt-gross-margin">0.0%</span></div>
           </div>
-
-          <!-- OPEX Section -->
           <div class="border-b border-neutral-100 pb-2">
-            <div class="flex justify-between font-bold text-gray-900 text-sm uppercase">
-              <span>Less: Operating Expenses (OPEX)</span>
-              <span id="stmt-opex-total">RM 0.00</span>
-            </div>
-            <div id="stmt-opex-breakdown" class="pl-4 mt-1 space-y-1 text-xs text-gray-500 font-medium">
-              <!-- Dynamically populated categories -->
-            </div>
+            <div class="flex justify-between font-bold text-gray-900 text-sm uppercase"><span>Less: Operating Expenses (OPEX)</span><span id="stmt-opex-total">RM 0.00</span></div>
+            <div id="stmt-opex-breakdown" class="pl-4 mt-1 space-y-1 text-xs text-gray-500 font-medium"></div>
           </div>
-
-          <!-- Net Profit Row -->
           <div class="pt-2 px-3 py-2 rounded-xl">
-            <div class="flex justify-between font-black text-gray-900 text-base uppercase">
-              <span>Net Profit / (Loss)</span>
-              <span id="stmt-net-profit" class="double-underline">RM 0.00</span>
-            </div>
+            <div class="flex justify-between font-black text-gray-900 text-base uppercase"><span>Net Profit / (Loss)</span><span id="stmt-net-profit" class="double-underline">RM 0.00</span></div>
           </div>
         </div>
-
-        <!-- Detailed Ledger Table -->
         <div class="mb-8">
           <h2 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Transaction Ledger</h2>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr class="border-b-2 border-gray-200 text-gray-500 font-bold uppercase">
-                  <th class="py-2 pr-2">Date</th>
-                  <th class="py-2 px-2">Type</th>
-                  <th class="py-2 px-2">Category</th>
-                  <th class="py-2 px-2">Reference/Vendor</th>
-                  <th class="py-2 pl-2 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody id="stmt-ledger-rows" class="divide-y divide-gray-100 text-gray-700">
-                <!-- Dynamically populated -->
-              </tbody>
+              <thead><tr class="border-b-2 border-gray-200 text-gray-500 font-bold uppercase"><th class="py-2 pr-2">Date</th><th class="py-2 px-2">Type</th><th class="py-2 px-2">Category</th><th class="py-2 px-2">Reference/Vendor</th><th class="py-2 pl-2 text-right">Amount</th></tr></thead>
+              <tbody id="stmt-ledger-rows" class="divide-y divide-gray-100 text-gray-700"></tbody>
             </table>
           </div>
         </div>
-
-        <!-- Statement Footer / Sign-off -->
         <div class="border-t border-gray-200 pt-6 mt-8 flex flex-col sm:flex-row justify-between items-start sm:items-end text-xs text-gray-400 gap-8">
-          <div>
-            <p>Generated on: <span id="stmt-gen-timestamp" class="font-medium text-gray-600"></span></p>
-            <p class="mt-0.5">App: Ayam Goreng Ledger</p>
-          </div>
-          
-          <div class="w-48 text-center">
-            <div class="border-b border-gray-300 pb-1 mb-1 min-h-[30px]"></div>
-            <p class="font-bold text-gray-600">Prepared By</p>
-          </div>
+          <div><p>Generated on: <span id="stmt-gen-timestamp" class="font-medium text-gray-600"></span></p><p class="mt-0.5">App: Jambu Batu Ledger</p></div>
+          <div class="w-48 text-center"><div class="border-b border-gray-300 pb-1 mb-1 min-h-[30px]"></div><p class="font-bold text-gray-600">Prepared By</p></div>
         </div>
       </div>
     </div>
@@ -1087,9 +425,8 @@
   <script src="js/test.js"></script>
   <script src="js/app.js"></script>
 
-  <!-- Google SDK Scripts (async/defer to load after our scripts are evaluated) -->
-  <script async defer src="https://apis.google.com/js/api.js" onload="AyamAuth.handleGapiLoad()"></script>
-  <script async defer src="https://accounts.google.com/gsi/client" onload="AyamAuth.handleGisLoad()"></script>
+  <script async defer src="https://apis.google.com/js/api.js" onload="JambuAuth.handleGapiLoad()"></script>
+  <script async defer src="https://accounts.google.com/gsi/client" onload="JambuAuth.handleGisLoad()"></script>
 
 </body>
 </html>
