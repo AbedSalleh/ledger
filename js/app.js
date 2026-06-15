@@ -3,7 +3,7 @@
 // ============================================================
 
 const CONFIG = {
-  CLIENT_ID: 'YOUR_CLIENT_ID.apps.googleusercontent.com',
+  CLIENT_ID: '905579408027-vbfp6i4asha3g4eeoros34605u92gos0.apps.googleusercontent.com',
   API_KEY: 'YOUR_API_KEY',
 };
 
@@ -22,14 +22,6 @@ const JambuApp = (() => {
       if (salesDate) salesDate.value = today;
       if (expenseDate) expenseDate.value = today;
 
-      if (CONFIG.CLIENT_ID === 'YOUR_CLIENT_ID.apps.googleusercontent.com') {
-        console.warn(
-          '%c⚠️ Jambu Batu Ledger: CLIENT_ID not configured!%c\nOpen js/app.js and set your Google OAuth Client ID.',
-          'color:#F59E0B; font-size:14px; font-weight:bold;',
-          'color:#a8a29e;'
-        );
-      }
-
       JambuAuth.init(CONFIG.CLIENT_ID, async (signedIn, user) => {
         if (signedIn) {
           this._showApp(user);
@@ -47,7 +39,6 @@ const JambuApp = (() => {
         }
       });
 
-      // Category change auto-updates COGS/OPEX classification
       const categorySelect = $('expense-category');
       const typeSelect = $('expense-type');
       if (categorySelect && typeSelect) {
@@ -109,7 +100,6 @@ const JambuApp = (() => {
       else if (viewName === 'inventory' && isInitialized) JambuInventory.load();
     },
 
-    // Bug fix #2: validate parsed values, not raw strings
     async saveSales() {
       const date = ($('sales-date') || {}).value;
       const cash = ($('sales-cash') || {}).value;
@@ -121,7 +111,6 @@ const JambuApp = (() => {
       const cashVal = parseFloat(cash) || 0;
       const qrVal = parseFloat(qr) || 0;
 
-      // Validate after parsing so junk input like "abc" is caught
       if (cashVal === 0 && qrVal === 0) {
         this.showToast('Please enter at least one revenue amount', 'error');
         return;
