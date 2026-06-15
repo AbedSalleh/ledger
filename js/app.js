@@ -1,34 +1,20 @@
 // ============================================================
-// 🍗 AyamApp — Main application controller
-// Loaded LAST — orchestrates auth, views, forms, and settings
+// JambuApp — Main application controller
 // ============================================================
 
-// ========================================
-// 🔧 CONFIGURATION — Fill these in!
-// See README.md for setup instructions
-// ========================================
 const CONFIG = {
-  CLIENT_ID: '905579408027-vbfp6i4asha3g4eeoros34605u92gos0.apps.googleusercontent.com',
-  API_KEY: 'YOUR_API_KEY',  // Not strictly needed with OAuth, but good to have
+  CLIENT_ID: 'YOUR_CLIENT_ID.apps.googleusercontent.com',
+  API_KEY: 'YOUR_API_KEY',
 };
 
-const AyamApp = (() => {
+const JambuApp = (() => {
   let currentView = 'dashboard';
   let isInitialized = false;
 
-  /**
-   * Helper: safely get an element by ID.
-   */
-  function $(id) {
-    return document.getElementById(id);
-  }
+  function $(id) { return document.getElementById(id); }
 
   return {
-    // ─────────────────────────────────────────────
-    // Boot sequence — called on DOMContentLoaded
-    // ─────────────────────────────────────────────
     async init() {
-      // Set default dates on forms to today (YYYY-MM-DD format)
       const now = new Date();
       const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const salesDate = $('sales-date');
@@ -36,24 +22,20 @@ const AyamApp = (() => {
       if (salesDate) salesDate.value = today;
       if (expenseDate) expenseDate.value = today;
 
-      // Check CONFIG
       if (CONFIG.CLIENT_ID === 'YOUR_CLIENT_ID.apps.googleusercontent.com') {
         console.warn(
-          '%c⚠️ Ayam Goreng Ledger: CLIENT_ID not configured!%c\n' +
-          'Open js/app.js and set your Google OAuth Client ID.\n' +
-          'See README.md for setup instructions.',
+          '%c⚠️ Jambu Batu Ledger: CLIENT_ID not configured!%c\nOpen js/app.js and set your Google OAuth Client ID.',
           'color:#F59E0B; font-size:14px; font-weight:bold;',
           'color:#a8a29e;'
         );
       }
 
-      // Initialize auth
-      AyamAuth.init(CONFIG.CLIENT_ID, async (signedIn, user) => {
+      JambuAuth.init(CONFIG.CLIENT_ID, async (signedIn, user) => {
         if (signedIn) {
           this._showApp(user);
           try {
-            await AyamSheets.initLedger();
-            await AyamDashboard.load();
+            await JambuSheets.initLedger();
+            await JambuDashboard.load();
             this.populateVendorSuggestions();
             isInitialized = true;
           } catch (e) {
@@ -65,56 +47,38 @@ const AyamApp = (() => {
         }
       });
 
-      // Category change auto-updates classification
+      // Category change auto-updates COGS/OPEX classification
       const categorySelect = $('expense-category');
       const typeSelect = $('expense-type');
       if (categorySelect && typeSelect) {
         categorySelect.addEventListener('change', () => {
-          const directCategories = ['Raw Chicken', 'Cooking Oil/Gas', 'Flour/Spices', 'Packaging'];
-          if (directCategories.includes(categorySelect.value)) {
-            typeSelect.value = 'Direct (COGS)';
-          } else {
-            typeSelect.value = 'Indirect (OPEX)';
-          }
+          const directCategories = ['Fresh Guava', 'Fertilizer/Pesticide', 'Seedlings/Soil', 'Packaging'];
+          typeSelect.value = directCategories.includes(categorySelect.value)
+            ? 'Direct (COGS)'
+            : 'Indirect (OPEX)';
         });
       }
     },
 
-    // ─────────────────────────────────────────────
-    // Auth actions
-    // ─────────────────────────────────────────────
-    signIn() {
-      AyamAuth.signIn();
-    },
+    signIn() { JambuAuth.signIn(); },
 
     signOut() {
-      AyamAuth.signOut();
+      JambuAuth.signOut();
       isInitialized = false;
       this._showLogin();
     },
 
-    /**
-     * Transition to the authenticated app view.
-     * @param {object|null} user — Google user profile
-     */
     _showApp(user) {
       const login = $('login-screen');
       const app = $('app-screen');
       if (login) login.style.display = 'none';
       if (app) app.style.display = 'block';
-
       if (user) {
         const avatar = $('user-avatar');
-        if (avatar && user.picture) {
-          avatar.src = user.picture;
-          avatar.style.display = 'block';
-        }
+        if (avatar && user.picture) { avatar.src = user.picture; avatar.style.display = 'block'; }
       }
     },
 
-    /**
-     * Transition to the login screen.
-     */
     _showLogin() {
       const login = $('login-screen');
       const app = $('app-screen');
@@ -122,26 +86,17 @@ const AyamApp = (() => {
       if (app) app.style.display = 'none';
     },
 
-    // ─────────────────────────────────────────────
-    // View switching
-    // ─────────────────────────────────────────────
     switchView(viewName) {
       currentView = viewName;
-
       ['dashboard', 'sales', 'expenses', 'inventory'].forEach(v => {
         const el = $('view-' + v);
         const nav = $('nav-' + v);
-
         if (!el || !nav) return;
-
         if (v === viewName) {
           el.classList.remove('hidden');
-          // Trigger fade-in animation
           el.classList.remove('animate-fadeIn');
-          // Force reflow to restart animation
           void el.offsetWidth;
           el.classList.add('animate-fadeIn');
-          // Active nav styling
           nav.classList.add('active', 'text-brand-600');
           nav.classList.remove('text-gray-400');
         } else {
@@ -150,71 +105,45 @@ const AyamApp = (() => {
           nav.classList.add('text-gray-400');
         }
       });
-
-      // Refresh data when switching views
-      if (viewName === 'dashboard' && isInitialized) {
-        AyamDashboard.load();
-      } else if (viewName === 'inventory' && isInitialized) {
-        AyamInventory.load();
-      }
+      if (viewName === 'dashboard' && isInitialized) JambuDashboard.load();
+      else if (viewName === 'inventory' && isInitialized) JambuInventory.load();
     },
 
-    // ─────────────────────────────────────────────
-    // Sales form handler
-    // ─────────────────────────────────────────────
+    // Bug fix #2: validate parsed values, not raw strings
     async saveSales() {
       const date = ($('sales-date') || {}).value;
       const cash = ($('sales-cash') || {}).value;
       const qr = ($('sales-qr') || {}).value;
       const notes = ($('sales-notes') || {}).value || '';
 
-      // Validation
-      if (!date) {
-        this.showToast('Please select a date', 'error');
-        return;
-      }
-      if (!cash && !qr) {
-        this.showToast('Please enter at least one revenue amount', 'error');
-        return;
-      }
+      if (!date) { this.showToast('Please select a date', 'error'); return; }
 
       const cashVal = parseFloat(cash) || 0;
       const qrVal = parseFloat(qr) || 0;
 
-      if (cashVal < 0 || qrVal < 0) {
-        this.showToast('Amounts cannot be negative', 'error');
+      // Validate after parsing so junk input like "abc" is caught
+      if (cashVal === 0 && qrVal === 0) {
+        this.showToast('Please enter at least one revenue amount', 'error');
         return;
       }
+      if (cashVal < 0 || qrVal < 0) { this.showToast('Amounts cannot be negative', 'error'); return; }
 
       const btn = $('btn-save-sales');
       if (!btn) return;
-
       btn.disabled = true;
       const originalText = btn.textContent;
       btn.textContent = 'Saving...';
-
       try {
-        await AyamSheets.appendSalesRow({
-          date: date,
-          cash: cashVal,
-          qr: qrVal,
-          notes: notes
-        });
-
+        await JambuSheets.appendSalesRow({ date, cash: cashVal, qr: qrVal, notes });
         this.showToast('Sales recorded successfully.', 'success');
-
-        // Reset form (keep the date)
         const salesCash = $('sales-cash');
         const salesQR = $('sales-qr');
         const salesNotes = $('sales-notes');
         if (salesCash) salesCash.value = '';
         if (salesQR) salesQR.value = '';
         if (salesNotes) salesNotes.value = '';
-
-        // Visual success feedback on button
         btn.classList.add('animate-pulse-success');
         setTimeout(() => btn.classList.remove('animate-pulse-success'), 600);
-
       } catch (e) {
         console.error('Save sales error:', e);
         this.showToast('Failed to save. Please try again.', 'error');
@@ -224,9 +153,6 @@ const AyamApp = (() => {
       }
     },
 
-    // ─────────────────────────────────────────────
-    // Expenses form handler
-    // ─────────────────────────────────────────────
     async saveExpense() {
       const date = ($('expense-date') || {}).value;
       const category = ($('expense-category') || {}).value;
@@ -236,62 +162,30 @@ const AyamApp = (() => {
       const status = ($('expense-status') || {}).value || 'Paid';
       const notes = ($('expense-notes') || {}).value || '';
 
-      // Validation
-      if (!date) {
-        this.showToast('Please select a date', 'error');
-        return;
-      }
-      if (!category) {
-        this.showToast('Please select a category', 'error');
-        return;
-      }
-      if (!amount) {
-        this.showToast('Please enter an amount', 'error');
-        return;
-      }
-
+      if (!date) { this.showToast('Please select a date', 'error'); return; }
+      if (!category) { this.showToast('Please select a category', 'error'); return; }
+      if (!amount) { this.showToast('Please enter an amount', 'error'); return; }
       const amountVal = parseFloat(amount);
-      if (isNaN(amountVal) || amountVal <= 0) {
-        this.showToast('Please enter a valid positive amount', 'error');
-        return;
-      }
+      if (isNaN(amountVal) || amountVal <= 0) { this.showToast('Please enter a valid positive amount', 'error'); return; }
 
       const btn = $('btn-save-expense');
       if (!btn) return;
-
       btn.disabled = true;
       const originalText = btn.textContent;
       btn.textContent = 'Saving...';
-
       try {
-        await AyamSheets.appendExpenseRow({
-          date: date,
-          category: category,
-          amount: amountVal,
-          type: type,
-          vendor: vendor,
-          status: status,
-          notes: notes
-        });
-
+        await JambuSheets.appendExpenseRow({ date, category, amount: amountVal, type, vendor, status, notes });
         this.showToast('Expense logged successfully.', 'success');
-
-        // Reset form (keep date and category defaults)
         const expenseAmt = $('expense-amount');
         const expenseNotes = $('expense-notes');
         const expenseVendor = $('expense-vendor');
         if (expenseAmt) expenseAmt.value = '';
         if (expenseNotes) expenseNotes.value = '';
         if (expenseVendor) expenseVendor.value = '';
-
-        // Reload data
-        await AyamDashboard.load();
+        await JambuDashboard.load();
         this.populateVendorSuggestions();
-
-        // Visual success feedback
         btn.classList.add('animate-pulse-success');
         setTimeout(() => btn.classList.remove('animate-pulse-success'), 600);
-
       } catch (e) {
         console.error('Save expense error:', e);
         this.showToast('Failed to save. Please try again.', 'error');
@@ -301,19 +195,13 @@ const AyamApp = (() => {
       }
     },
 
-    // ─────────────────────────────────────────────
-    // Settings modal
-    // ─────────────────────────────────────────────
     async openSettings() {
       const modal = $('settings-modal');
       if (!modal) return;
-
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-
-      // Load current target
       try {
-        const target = await AyamSheets.getTargetProfit();
+        const target = await JambuSheets.getTargetProfit();
         const input = $('settings-target');
         if (input) input.value = target || 2000;
       } catch (e) {
@@ -332,74 +220,42 @@ const AyamApp = (() => {
     async saveSettings() {
       const input = $('settings-target');
       const target = parseFloat((input || {}).value);
-
-      if (!target || target <= 0) {
-        this.showToast('Please enter a valid target amount', 'error');
-        return;
-      }
-
+      if (!target || target <= 0) { this.showToast('Please enter a valid target amount', 'error'); return; }
       try {
-        await AyamSheets.setTargetProfit(target);
-        AyamDashboard.setTarget(target);
+        await JambuSheets.setTargetProfit(target);
+        JambuDashboard.setTarget(target);
         this.closeSettings();
         this.showToast('Target updated successfully.', 'success');
-        if (currentView === 'dashboard') {
-          AyamDashboard.load();
-        }
+        if (currentView === 'dashboard') JambuDashboard.load();
       } catch (e) {
         console.error('Save settings error:', e);
         this.showToast('Failed to save settings', 'error');
       }
     },
 
-    // ─────────────────────────────────────────────
-    // Toast notifications
-    // ─────────────────────────────────────────────
     showToast(message, type = 'info') {
       const container = $('toast-container');
-      if (!container) {
-        console.warn('Toast container not found');
-        return;
-      }
-
+      if (!container) { console.warn('Toast container not found'); return; }
       const toast = document.createElement('div');
-
-      // Background color by type
-      const bgColor =
-        type === 'success' ? 'bg-emerald-500' :
-        type === 'error'   ? 'bg-red-500' :
-                             'bg-blue-500';
-
+      const bgColor = type === 'success' ? 'bg-emerald-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
       toast.className = `${bgColor} text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium toast-enter mb-2`;
       toast.style.cssText = 'pointer-events:auto; max-width:90vw; word-break:break-word;';
       toast.textContent = message;
-
       container.appendChild(toast);
-
-      // Auto-dismiss after 3 seconds
       setTimeout(() => {
         toast.classList.remove('toast-enter');
         toast.classList.add('toast-exit');
-        setTimeout(() => {
-          if (toast.parentNode) toast.remove();
-        }, 300);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
       }, 3000);
     },
 
-    /**
-     * Fetch previous expense entries and populate the vendor suggestions datalist
-     */
     async populateVendorSuggestions() {
       try {
-        const expenses = await AyamSheets.getExpensesData();
+        const expenses = await JambuSheets.getExpensesData();
         const vendors = new Set();
         expenses.forEach(row => {
-          // If row has vendor field (index 4 in new schema)
-          if (row.length >= 5 && row[4] && row[4] !== 'General') {
-            vendors.add(row[4].trim());
-          }
+          if (row.length >= 5 && row[4] && row[4] !== 'General') vendors.add(row[4].trim());
         });
-        
         const datalist = $('vendor-suggestions');
         if (datalist) {
           datalist.innerHTML = '';
@@ -416,7 +272,4 @@ const AyamApp = (() => {
   };
 })();
 
-// ─────────────────────────────────────────────
-// Boot on DOM ready
-// ─────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => AyamApp.init());
+document.addEventListener('DOMContentLoaded', () => JambuApp.init());
