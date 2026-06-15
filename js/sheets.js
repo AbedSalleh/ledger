@@ -168,6 +168,19 @@ const JambuSheets = (() => {
     getSpreadsheetId() { return spreadsheetId; },
 
     async initLedger() {
+      // If a shared link supplied a spreadsheet ID, use that ledger directly
+      // (works via the 'spreadsheets' scope even though drive.file wouldn't list it).
+      const sharedId = (typeof JambuShare !== 'undefined') ? JambuShare.getSharedSheetId() : null;
+      if (sharedId) {
+        spreadsheetId = sharedId;
+        console.info(`[JambuSheets] Using shared ledger from link: ${spreadsheetId}`);
+        // Best-effort maintenance — a view-only (Drive reader) user cannot write,
+        // so these are wrapped to fail gracefully.
+        try { await this._ensureInventoryTabExists(); } catch (e) { console.warn('[JambuSheets] Skipped inventory tab check (read-only?):', e.message); }
+        try { await _repairColumnAlignments(); } catch (e) { console.warn('[JambuSheets] Skipped repair (read-only?):', e.message); }
+        return spreadsheetId;
+      }
+
       const files = await this._findLedger();
       if (files && files.length > 0) {
         spreadsheetId = files[0].id;
