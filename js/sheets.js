@@ -58,6 +58,16 @@ const JambuSheets = (() => {
     }
   }
 
+  // "YYYY-MM" key for grouping rows by month (timezone-safe for ISO dates).
+  function _monthKey(dateStr) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    const y = dateStr.includes('-') ? d.getUTCFullYear() : d.getFullYear();
+    const m = dateStr.includes('-') ? d.getUTCMonth() : d.getMonth();
+    return `${y}-${String(m + 1).padStart(2, '0')}`;
+  }
+
   async function _repairColumnAlignments() {
     _requireInit();
     console.info('[JambuSheets] Running auto-repair check for column alignments...');
@@ -293,7 +303,6 @@ const JambuSheets = (() => {
           if (Array.isArray(arr) && arr.length) return arr;
         } catch (e) { console.warn('[JambuSheets] Bad categories JSON, using defaults.'); }
       }
-      // Seed defaults into the sheet (best effort) so the list is editable/persistent.
       try { await this.setCategories(DEFAULT_CATEGORIES); } catch (e) { /* read-only share, ignore */ }
       return DEFAULT_CATEGORIES.slice();
     },
@@ -303,9 +312,76 @@ const JambuSheets = (() => {
       return this.setSetting('categories', JSON.stringify(list || []));
     },
 
+    // Rewrites the Category cell of every expense row using oldName.
+    async renameCategoryInExpenses(oldName, newName) {
+      _requireInit();
+      if (!oldName || !newName) throw new Error('[JambuSheets] renameCategoryInExpenses: both names required.');
+      return _call('Rename category in records', async () => {
+        const resp = await gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range: `${TABS.EXPENSES}!B2:B`,
+        });
+        const rows = resp.result.values || [];
+        const data = [];
+        rows.forEach((r, i) => {
+          if (r[0] === oldName) data.push({ range: `${TABS.EXPENSES}!B${i + 2}`, values: [[newName]] });
+        });
+        if (data.length) {
+          await gapi.client.sheets.spreadsheets.values.batchUpdate({
+            spreadsheetId,
+            resource: { valueInputOption: 'RAW', data },
+          });
+        }
+        return data.length;
+      });
+    },
+
+    // ---- Monthly summary (writes the Monthly_Summary tab) ----
+    async updateMonthlySummary() {
+      _requireInit();
+      const [sales, expenses] = await Promise.all([this.getSalesData(), this.getExpensesData()]);
+      const months = {};
+      (sales || []).forEach(r => {
+        const k = _monthKey(r[0]);
+        if (!k) return;
+        months[k] = months[k] || { rev: 0, cogs: 0, opex: 0 };
+        months[k].rev += (parseFloat(r[1]) || 0) + (parseFloat(r[2]) || 0);
+      });
+      (expenses || []).forEach(r => {
+        const k = _monthKey(r[0]);
+        if (!k) return;
+        months[k] = months[k] || { rev: 0, cogs: 0, opex: 0 };
+        const amt = parseFloat(r[2]) || 0;
+        if ((r[3] || '') === 'Direct (COGS)') months[k].cogs += amt; else months[k].opex += amt;
+      });
+      const keys = Object.keys(months).sort();
+      const rows = [['Month', 'Revenue (RM)', 'COGS (RM)', 'OPEX (RM)', 'Net Profit (RM)', 'Gross Margin %']];
+      keys.forEach(k => {
+        const m = months[k];
+        const net = m.rev - m.cogs - m.opex;
+        const margin = m.rev > 0 ? (((m.rev - m.cogs) / m.rev) * 100).toFixed(1) : '0.0';
+        rows.push([k, m.rev.toFixed(2), m.cogs.toFixed(2), m.opex.toFixed(2), net.toFixed(2), margin]);
+      });
+      return _call('Update monthly summary', async () => {
+        await gapi.client.sheets.spreadsheets.values.clear({ spreadsheetId, range: `${TABS.MONTHLY_SUMMARY}!A:F` });
+        await gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `${TABS.MONTHLY_SUMMARY}!A1`,
+          valueInputOption: 'RAW',
+          resource: { values: rows },
+        });
+        return rows.length - 1;
+      });
+    },
+
     async appendSalesRow({ date, cash = 0, qr = 0, notes = '' }) {
       _requireInit();
       if (!date) throw new Error('[JambuSheets] appendSalesRow: "date" is required.');
+      // Offline: queue instead of failing (validation already passed above).
+      if (typeof JambuOffline !== 'undefined' && !navigator.onLine) {
+        JambuOffline.enqueue('sale', { date, cash, qr, notes });
+        return { queued: true };
+      }
       return _call('Append sales row', async () => {
         const rowNum = await this._getNextRow(TABS.DAILY_SALES);
         const values = [[date, cash, qr, `=B${rowNum}+C${rowNum}`, notes, new Date().toISOString()]];
@@ -340,19 +416,33 @@ const JambuSheets = (() => {
 
     async getSalesData() {
       _requireInit();
-      return _call('Get sales data', async () => {
-        const response = await gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId,
-          range: `${TABS.DAILY_SALES}!A2:F`,
+      try {
+        const rows = await _call('Get sales data', async () => {
+          const response = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range: `${TABS.DAILY_SALES}!A2:F`,
+          });
+          return response.result.values || [];
         });
-        return response.result.values || [];
-      });
+        if (typeof JambuOffline !== 'undefined') JambuOffline.cache('sales', rows);
+        return rows;
+      } catch (e) {
+        if (typeof JambuOffline !== 'undefined') {
+          console.warn('[JambuSheets] Offline fallback for sales data.');
+          return JambuOffline.getCached('sales');
+        }
+        throw e;
+      }
     },
 
     async appendExpenseRow({ date, category, amount = 0, type = 'Direct (COGS)', vendor = 'General', status = 'Paid', notes = '' }) {
       _requireInit();
       if (!date) throw new Error('[JambuSheets] appendExpenseRow: "date" is required.');
       if (!category) throw new Error('[JambuSheets] appendExpenseRow: "category" is required.');
+      if (typeof JambuOffline !== 'undefined' && !navigator.onLine) {
+        JambuOffline.enqueue('expense', { date, category, amount, type, vendor, status, notes });
+        return { queued: true };
+      }
       return _call('Append expense row', async () => {
         const values = [[date, category, amount, type, vendor, status, notes, new Date().toISOString()]];
         const response = await gapi.client.sheets.spreadsheets.values.append({
@@ -386,13 +476,23 @@ const JambuSheets = (() => {
 
     async getExpensesData() {
       _requireInit();
-      return _call('Get expenses data', async () => {
-        const response = await gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId,
-          range: `${TABS.EXPENSES}!A2:H`,
+      try {
+        const rows = await _call('Get expenses data', async () => {
+          const response = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range: `${TABS.EXPENSES}!A2:H`,
+          });
+          return response.result.values || [];
         });
-        return response.result.values || [];
-      });
+        if (typeof JambuOffline !== 'undefined') JambuOffline.cache('expenses', rows);
+        return rows;
+      } catch (e) {
+        if (typeof JambuOffline !== 'undefined') {
+          console.warn('[JambuSheets] Offline fallback for expenses data.');
+          return JambuOffline.getCached('expenses');
+        }
+        throw e;
+      }
     },
 
     async getTargetProfit() {
@@ -521,13 +621,23 @@ const JambuSheets = (() => {
 
     async getInventoryData() {
       _requireInit();
-      return _call('Get inventory data', async () => {
-        const response = await gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId,
-          range: `${TABS.INVENTORY}!A2:F`,
+      try {
+        const rows = await _call('Get inventory data', async () => {
+          const response = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range: `${TABS.INVENTORY}!A2:F`,
+          });
+          return response.result.values || [];
         });
-        return response.result.values || [];
-      });
+        if (typeof JambuOffline !== 'undefined') JambuOffline.cache('inventory', rows);
+        return rows;
+      } catch (e) {
+        if (typeof JambuOffline !== 'undefined') {
+          console.warn('[JambuSheets] Offline fallback for inventory data.');
+          return JambuOffline.getCached('inventory');
+        }
+        throw e;
+      }
     },
 
     async saveInventoryItem({ originalName, name, quantity, unit, minAlert, notes = '' }) {
