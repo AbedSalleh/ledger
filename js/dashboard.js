@@ -7,9 +7,11 @@ const JambuDashboard = (() => {
   let currentYear = new Date().getFullYear();
   let targetProfit = 2000;
   let allTxEntries = [];
+  let dynamicColors = {}; // category name -> color, supplied by JambuApp
 
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+  // Fallback palette for categories with no stored color.
   const CATEGORY_COLORS = {
     'Fresh Guava': '#EF4444',
     'Fertilizer/Pesticide': '#F59E0B',
@@ -19,6 +21,10 @@ const JambuDashboard = (() => {
     'Transport': '#EC4899',
     'Others': '#6B7280'
   };
+
+  function colorFor(category) {
+    return dynamicColors[category] || CATEGORY_COLORS[category] || CATEGORY_COLORS['Others'] || '#6B7280';
+  }
 
   function formatRM(amount) {
     return 'RM ' + Number(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -86,6 +92,7 @@ const JambuDashboard = (() => {
   return {
     getCurrentMonth() { return currentMonth; },
     getCurrentYear() { return currentYear; },
+    setCategoryColors(map) { dynamicColors = map || {}; },
 
     async load() {
       const loading = $('dash-loading');
@@ -153,7 +160,7 @@ const JambuDashboard = (() => {
           this._hideEmptyState();
           this._renderMetrics({ revenue: totalRevenue, cash: totalCash, qr: totalQR, expenses: totalExpenses, cogs: totalCOGS, opex: totalOPEX, grossProfit, grossMargin: grossMarginPct, payable: totalPayable, profit: netProfit, progressPct });
           this._renderCategories(monthlyExpenses, totalExpenses);
-          // Bug fix #1: pass month-filtered arrays so Recent Transactions respects the selected month
+          // Bug fix #1: month-filtered arrays so Recent Transactions respect the selected month
           this._renderRecent(monthlySales, monthlyExpenses);
         }
       } catch (error) {
@@ -236,7 +243,7 @@ const JambuDashboard = (() => {
       const sorted = Object.entries(grouped).sort((a, b) => b[1] - a[1]);
       sorted.forEach(([category, amount], index) => {
         const pct = total > 0 ? (amount / total) * 100 : 0;
-        const color = CATEGORY_COLORS[category] || CATEGORY_COLORS['Others'];
+        const color = colorFor(category);
         const row = document.createElement('div');
         row.style.cssText = 'margin-bottom:0.75rem;';
         const header = document.createElement('div');
@@ -271,7 +278,7 @@ const JambuDashboard = (() => {
         const qr = parseFloat(row[2]) || 0;
         const total = cash + qr;
         if (total === 0) return;
-        allTxEntries.push({ type: 'sale', date: row[0], amount: total, label: row[4] || 'Daily Sales', timestamp: row[5] || row[0] });
+        allTxEntries.push({ type: 'sale', date: row[0], amount: total, label: row[4] || 'Daily Sales', timestamp: row[5] || row[0], raw: row });
       });
       (expenses || []).forEach(row => {
         const amt = parseFloat(row[2]) || 0;
@@ -286,7 +293,7 @@ const JambuDashboard = (() => {
           if (row[4] && row[4] !== 'General') labelText += ` - ${row[4]}`;
           if (row[5] === 'Unpaid') labelText += ' [UNPAID]';
         }
-        allTxEntries.push({ type: 'expense', date: row[0], amount: amt, label: labelText, timestamp: timestampVal });
+        allTxEntries.push({ type: 'expense', date: row[0], amount: amt, label: labelText, timestamp: timestampVal, raw: row });
       });
       this.filterRecent();
     },
@@ -332,8 +339,17 @@ const JambuDashboard = (() => {
         const amtEl = document.createElement('div');
         amtEl.style.cssText = `font-size:0.9rem;font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0;color:${isSale?'#34D399':'#F87171'};`;
         amtEl.textContent = (isSale?'+':'-') + formatRM(entry.amount);
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'p-1.5 rounded-lg text-gray-300 hover:text-brand-600 hover:bg-brand-50 active:scale-90 transition-all ml-1 flex-shrink-0';
+        editBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>';
+        editBtn.title = 'Edit transaction';
+        editBtn.onclick = () => {
+          if (typeof JambuApp !== 'undefined') JambuApp.editTransaction(isSale ? 'sale' : 'expense', entry.raw, entry.timestamp);
+        };
+
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all ml-1.5 flex-shrink-0';
+        deleteBtn.className = 'p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all flex-shrink-0';
         deleteBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
         deleteBtn.title = 'Delete transaction';
         deleteBtn.onclick = async () => {
@@ -360,6 +376,7 @@ const JambuDashboard = (() => {
         row.appendChild(icon);
         row.appendChild(info);
         row.appendChild(amtEl);
+        row.appendChild(editBtn);
         row.appendChild(deleteBtn);
         container.appendChild(row);
       });
