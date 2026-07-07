@@ -11,7 +11,15 @@ const JambuApp = (() => {
   let currentView = 'dashboard';
   let isInitialized = false;
   let categories = [];        // [{name, type:'COGS'|'OPEX', color}]
-  let editState = null;       // { kind:'sale'|'expense', timestamp } when editing
+  let editState = null;       // { kind:'sale'|'expense', timestamp } when editing a record
+  let editingCat = null;      // original name of the category being edited, or null
+  let selectedColor = '#6B7280';
+
+  const PRESET_COLORS = [
+    '#EF4444', '#F97316', '#F59E0B', '#EAB308',
+    '#84CC16', '#10B981', '#14B8A6', '#06B6D4',
+    '#3B82F6', '#8B5CF6', '#EC4899', '#6B7280',
+  ];
 
   function $(id) { return document.getElementById(id); }
 
@@ -27,6 +35,8 @@ const JambuApp = (() => {
       const expenseDate = $('expense-date');
       if (salesDate) salesDate.value = today;
       if (expenseDate) expenseDate.value = today;
+
+      if (typeof JambuOffline !== 'undefined') JambuOffline.init();
 
       JambuAuth.init(CONFIG.CLIENT_ID, async (signedIn, user) => {
         if (signedIn) {
@@ -67,7 +77,6 @@ const JambuApp = (() => {
         categories = JambuSheets.getDefaultCategories();
       }
       this._populateCategorySelect();
-      // Feed colors to the dashboard breakdown.
       const colorMap = {};
       categories.forEach(c => { colorMap[c.name] = c.color; });
       if (typeof JambuDashboard !== 'undefined' && JambuDashboard.setCategoryColors) {
@@ -89,6 +98,55 @@ const JambuApp = (() => {
       if (current && categories.some(c => c.name === current)) sel.value = current;
     },
 
+    _renderPalette() {
+      const pal = $('cat-color-palette');
+      if (!pal) return;
+      pal.innerHTML = '';
+      PRESET_COLORS.forEach(c => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', `Color ${c}`);
+        b.style.cssText = `width:24px;height:24px;border-radius:50%;background:${c};border:2px solid ${c.toLowerCase() === (selectedColor || '').toLowerCase() ? '#0F172A' : 'transparent'};box-shadow:0 0 0 1px rgba(0,0,0,0.08);`;
+        b.onclick = () => {
+          selectedColor = c;
+          const inp = $('new-cat-color');
+          if (inp) inp.value = c;
+          this._renderPalette();
+        };
+        pal.appendChild(b);
+      });
+    },
+
+    setCustomColor(v) {
+      selectedColor = v;
+      this._renderPalette();
+    },
+
+    _resetCatForm() {
+      editingCat = null;
+      const nameEl = $('new-cat-name');
+      if (nameEl) nameEl.value = '';
+      const btn = $('btn-add-cat');
+      if (btn) btn.textContent = 'Add';
+    },
+
+    startEditCategory(name) {
+      const c = categories.find(x => x.name === name);
+      if (!c) return;
+      editingCat = name;
+      const nameEl = $('new-cat-name');
+      const typeEl = $('new-cat-type');
+      const colorEl = $('new-cat-color');
+      if (nameEl) nameEl.value = c.name;
+      if (typeEl) typeEl.value = c.type;
+      selectedColor = c.color;
+      if (colorEl) colorEl.value = c.color;
+      this._renderPalette();
+      const btn = $('btn-add-cat');
+      if (btn) btn.textContent = 'Save';
+      if (nameEl) nameEl.focus();
+    },
+
     renderCategoryManager() {
       const list = $('category-list');
       if (!list) return;
@@ -105,34 +163,73 @@ const JambuApp = (() => {
           <span class="flex-1 truncate text-gray-700">${c.name}</span>
           <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${c.type === 'COGS' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${c.type}</span>
         `;
+        const edit = document.createElement('button');
+        edit.className = 'p-1 rounded text-gray-300 hover:text-brand-600 hover:bg-brand-50 active:scale-90 transition-all';
+        edit.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>';
+        edit.title = `Edit ${c.name}`;
+        edit.onclick = () => this.startEditCategory(c.name);
         const del = document.createElement('button');
         del.className = 'p-1 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all';
         del.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
         del.title = `Remove ${c.name}`;
         del.onclick = () => this.deleteCategory(c.name);
+        row.appendChild(edit);
         row.appendChild(del);
         list.appendChild(row);
       });
     },
 
+    // Handles both adding a new category and saving an edit of an existing one.
     async addCategory() {
       const nameEl = $('new-cat-name');
       const typeEl = $('new-cat-type');
-      const colorEl = $('new-cat-color');
       const name = (nameEl ? nameEl.value : '').trim();
       const type = (typeEl ? typeEl.value : 'COGS');
-      const color = (colorEl ? colorEl.value : '#6B7280');
+      const color = selectedColor || '#6B7280';
       if (!name) { this.showToast('Enter a category name', 'error'); return; }
+
+      if (editingCat) {
+        const idx = categories.findIndex(c => c.name === editingCat);
+        if (idx === -1) { this._resetCatForm(); return; }
+        const dup = categories.some((c, i) => i !== idx && c.name.toLowerCase() === name.toLowerCase());
+        if (dup) { this.showToast('That category name already exists', 'error'); return; }
+        const oldName = editingCat;
+        const prev = categories[idx];
+        categories[idx] = { name, type, color };
+        try {
+          await JambuSheets.setCategories(categories);
+          if (oldName !== name && confirm(`Also update existing records from "${oldName}" to "${name}"?`)) {
+            try {
+              const n = await JambuSheets.renameCategoryInExpenses(oldName, name);
+              this.showToast(`Category saved — ${n} record(s) updated.`, 'success');
+            } catch (e2) {
+              console.error('Rename records error:', e2);
+              this.showToast('Category saved, but records could not be updated.', 'error');
+            }
+          } else {
+            this.showToast('Category saved', 'success');
+          }
+          this._resetCatForm();
+          await this.loadCategories();
+          this.renderCategoryManager();
+          if (currentView === 'dashboard') JambuDashboard.load();
+        } catch (e) {
+          console.error('Edit category error:', e);
+          categories[idx] = prev;
+          this.showToast('Failed to save category', 'error');
+        }
+        return;
+      }
+
       if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
         this.showToast('That category already exists', 'error'); return;
       }
       categories.push({ name, type, color });
       try {
         await JambuSheets.setCategories(categories);
-        this._populateCategorySelect();
+        this._resetCatForm();
+        await this.loadCategories();
         this.renderCategoryManager();
-        this.loadCategories();
-        if (nameEl) nameEl.value = '';
         this.showToast('Category added', 'success');
       } catch (e) {
         console.error('Add category error:', e);
@@ -143,13 +240,13 @@ const JambuApp = (() => {
 
     async deleteCategory(name) {
       if (!confirm(`Remove category "${name}"? Existing records keep their category label.`)) return;
+      if (editingCat === name) this._resetCatForm();
       const prev = categories.slice();
       categories = categories.filter(c => c.name !== name);
       try {
         await JambuSheets.setCategories(categories);
-        this._populateCategorySelect();
+        await this.loadCategories();
         this.renderCategoryManager();
-        this.loadCategories();
         this.showToast('Category removed', 'success');
       } catch (e) {
         console.error('Delete category error:', e);
@@ -188,7 +285,7 @@ const JambuApp = (() => {
 
     switchView(viewName) {
       currentView = viewName;
-      // Leaving/entering a form cancels any in-progress edit.
+      // Leaving/entering a form cancels any in-progress record edit.
       editState = null;
       const bs = $('btn-save-sales'); if (bs) bs.textContent = 'Save Sales';
       const be = $('btn-save-expense'); if (be) be.textContent = 'Save Expense';
@@ -267,8 +364,9 @@ const JambuApp = (() => {
           await JambuSheets.updateSalesRow(editing.timestamp, { date, cash: cashVal, qr: qrVal, notes });
           this.showToast('Sales entry updated.', 'success');
         } else {
-          await JambuSheets.appendSalesRow({ date, cash: cashVal, qr: qrVal, notes });
-          this.showToast('Sales recorded successfully.', 'success');
+          const result = await JambuSheets.appendSalesRow({ date, cash: cashVal, qr: qrVal, notes });
+          if (result && result.queued) this.showToast('No connection — saved offline, will sync later.', 'info');
+          else this.showToast('Sales recorded successfully.', 'success');
         }
         editState = null;
         const salesCash = $('sales-cash');
@@ -310,12 +408,15 @@ const JambuApp = (() => {
       btn.disabled = true;
       btn.textContent = editing ? 'Updating...' : 'Saving...';
       try {
+        let queued = false;
         if (editing) {
           await JambuSheets.updateExpenseRow(editing.timestamp, { date, category, amount: amountVal, type, vendor, status, notes });
           this.showToast('Expense entry updated.', 'success');
         } else {
-          await JambuSheets.appendExpenseRow({ date, category, amount: amountVal, type, vendor, status, notes });
-          this.showToast('Expense logged successfully.', 'success');
+          const result = await JambuSheets.appendExpenseRow({ date, category, amount: amountVal, type, vendor, status, notes });
+          queued = !!(result && result.queued);
+          if (queued) this.showToast('No connection — saved offline, will sync later.', 'info');
+          else this.showToast('Expense logged successfully.', 'success');
         }
         editState = null;
         const expenseAmt = $('expense-amount');
@@ -324,8 +425,10 @@ const JambuApp = (() => {
         if (expenseAmt) expenseAmt.value = '';
         if (expenseNotes) expenseNotes.value = '';
         if (expenseVendor) expenseVendor.value = '';
-        await JambuDashboard.load();
-        this.populateVendorSuggestions();
+        if (!queued) {
+          await JambuDashboard.load();
+          this.populateVendorSuggestions();
+        }
         btn.classList.add('animate-pulse-success');
         setTimeout(() => btn.classList.remove('animate-pulse-success'), 600);
       } catch (e) {
@@ -337,11 +440,52 @@ const JambuApp = (() => {
       }
     },
 
+    // ---- Export & summary ----
+    async exportCSV() {
+      try {
+        const [sales, expenses] = await Promise.all([JambuSheets.getSalesData(), JambuSheets.getExpensesData()]);
+        const esc = (v) => {
+          v = String(v ?? '');
+          return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+        };
+        let csv = 'SALES\nDate,Cash (RM),QR (RM),Total (RM),Notes,Timestamp\n';
+        (sales || []).forEach(r => { csv += [r[0], r[1], r[2], r[3], r[4], r[5]].map(esc).join(',') + '\n'; });
+        csv += '\nEXPENSES\nDate,Category,Amount (RM),Type,Vendor,Status,Notes,Timestamp\n';
+        (expenses || []).forEach(r => { csv += [r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]].map(esc).join(',') + '\n'; });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'jambu_batu_ledger_export.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        this.showToast('CSV exported', 'success');
+      } catch (e) {
+        console.error('Export error:', e);
+        this.showToast('Export failed', 'error');
+      }
+    },
+
+    async updateSummary() {
+      const btn = $('btn-update-summary');
+      if (btn) { btn.disabled = true; }
+      try {
+        const n = await JambuSheets.updateMonthlySummary();
+        this.showToast(`Monthly summary updated (${n} month${n === 1 ? '' : 's'}).`, 'success');
+      } catch (e) {
+        console.error('Summary error:', e);
+        this.showToast('Failed to update summary', 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    },
+
     async openSettings() {
       const modal = $('settings-modal');
       if (!modal) return;
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+      this._resetCatForm();
+      this._renderPalette();
       this.renderCategoryManager();
       try {
         const target = await JambuSheets.getTargetProfit();
@@ -358,6 +502,7 @@ const JambuApp = (() => {
       if (!modal) return;
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+      this._resetCatForm();
     },
 
     async saveSettings() {
