@@ -1,11 +1,7 @@
 /**
  * @fileoverview Google Sheets / Drive CRUD module for Jambu Batu Ledger.
  * Handles spreadsheet discovery, creation, and all read/write operations
- * against the four ledger tabs (Daily_Sales, Expenses, Inventory, Settings).
- *
- * Depends on:
- *   - `gapi.client.sheets` and `gapi.client.drive` being initialised (via auth.js).
- *   - `JambuAuth.withTokenRefresh()` for automatic 401 handling.
+ * against the ledger tabs (Daily_Sales, Expenses, Inventory, Settings).
  *
  * Exposes a global `JambuSheets` object.
  */
@@ -14,6 +10,18 @@ const JambuSheets = (() => {
   let spreadsheetId = null;
   const SPREADSHEET_NAME = 'Jambu_Batu_Ledger';
   const DEFAULT_TARGET_PROFIT = 2000;
+
+  // Seed categories used the first time a ledger runs. After that the list
+  // lives in the Settings tab (key: 'categories') and is fully user-editable.
+  const DEFAULT_CATEGORIES = [
+    { name: 'Fresh Guava',          type: 'COGS', color: '#EF4444' },
+    { name: 'Fertilizer/Pesticide', type: 'COGS', color: '#F59E0B' },
+    { name: 'Seedlings/Soil',       type: 'COGS', color: '#8B5CF6' },
+    { name: 'Packaging',            type: 'COGS', color: '#10B981' },
+    { name: 'Rent/Stall',           type: 'OPEX', color: '#3B82F6' },
+    { name: 'Transport',            type: 'OPEX', color: '#EC4899' },
+    { name: 'Others',               type: 'OPEX', color: '#6B7280' },
+  ];
 
   const TABS = {
     DAILY_SALES: 'Daily_Sales',
@@ -164,18 +172,28 @@ const JambuSheets = (() => {
     } catch (err) { console.error('[JambuSheets] Inventory repair failed:', err); }
   }
 
+  async function _findSheetRowByTimestamp(tabName, timestamp) {
+    const response = await gapi.client.sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${tabName}!A:H`,
+    });
+    const rows = response.result.values || [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.length && row[row.length - 1] === timestamp) return i + 1; // 1-based sheet row
+    }
+    return -1;
+  }
+
   return {
     getSpreadsheetId() { return spreadsheetId; },
+    getDefaultCategories() { return DEFAULT_CATEGORIES.slice(); },
 
     async initLedger() {
-      // If a shared link supplied a spreadsheet ID, use that ledger directly
-      // (works via the 'spreadsheets' scope even though drive.file wouldn't list it).
       const sharedId = (typeof JambuShare !== 'undefined') ? JambuShare.getSharedSheetId() : null;
       if (sharedId) {
         spreadsheetId = sharedId;
         console.info(`[JambuSheets] Using shared ledger from link: ${spreadsheetId}`);
-        // Best-effort maintenance — a view-only (Drive reader) user cannot write,
-        // so these are wrapped to fail gracefully.
         try { await this._ensureInventoryTabExists(); } catch (e) { console.warn('[JambuSheets] Skipped inventory tab check (read-only?):', e.message); }
         try { await _repairColumnAlignments(); } catch (e) { console.warn('[JambuSheets] Skipped repair (read-only?):', e.message); }
         return spreadsheetId;
@@ -220,7 +238,11 @@ const JambuSheets = (() => {
           },
         });
         const id = createResponse.result.spreadsheetId;
-        const settingsValues = [HEADERS[TABS.SETTINGS].headers, ...HEADERS[TABS.SETTINGS].defaults];
+        const settingsValues = [
+          HEADERS[TABS.SETTINGS].headers,
+          ...HEADERS[TABS.SETTINGS].defaults,
+          ['categories', JSON.stringify(DEFAULT_CATEGORIES)],
+        ];
         await gapi.client.sheets.spreadsheets.values.batchUpdate({
           spreadsheetId: id,
           resource: {
@@ -230,7 +252,7 @@ const JambuSheets = (() => {
               { range: `${TABS.EXPENSES}!A1:H1`, values: [HEADERS[TABS.EXPENSES]] },
               { range: `${TABS.INVENTORY}!A1:F1`, values: [HEADERS[TABS.INVENTORY]] },
               { range: `${TABS.MONTHLY_SUMMARY}!A1`, values: [HEADERS[TABS.MONTHLY_SUMMARY]] },
-              { range: `${TABS.SETTINGS}!A1:B${1 + settingsValues.length - 1}`, values: settingsValues },
+              { range: `${TABS.SETTINGS}!A1:B${settingsValues.length}`, values: settingsValues },
             ],
           },
         });
@@ -260,6 +282,27 @@ const JambuSheets = (() => {
       });
     },
 
+    // ---- Categories (stored in Settings, user-editable) ----
+    async getCategories() {
+      _requireInit();
+      let raw = null;
+      try { raw = await this.getSetting('categories', null); } catch (e) { /* ignore */ }
+      if (raw) {
+        try {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr) && arr.length) return arr;
+        } catch (e) { console.warn('[JambuSheets] Bad categories JSON, using defaults.'); }
+      }
+      // Seed defaults into the sheet (best effort) so the list is editable/persistent.
+      try { await this.setCategories(DEFAULT_CATEGORIES); } catch (e) { /* read-only share, ignore */ }
+      return DEFAULT_CATEGORIES.slice();
+    },
+
+    async setCategories(list) {
+      _requireInit();
+      return this.setSetting('categories', JSON.stringify(list || []));
+    },
+
     async appendSalesRow({ date, cash = 0, qr = 0, notes = '' }) {
       _requireInit();
       if (!date) throw new Error('[JambuSheets] appendSalesRow: "date" is required.');
@@ -274,6 +317,24 @@ const JambuSheets = (() => {
           resource: { values },
         });
         return response.result;
+      });
+    },
+
+    // Update an existing sales row in place, matched by its original timestamp.
+    async updateSalesRow(timestamp, { date, cash = 0, qr = 0, notes = '' }) {
+      _requireInit();
+      if (!timestamp) throw new Error('[JambuSheets] updateSalesRow: timestamp required.');
+      return _call('Update sales row', async () => {
+        const rowNum = await _findSheetRowByTimestamp(TABS.DAILY_SALES, timestamp);
+        if (rowNum === -1) throw new Error('Original sales entry not found.');
+        const values = [[date, cash, qr, `=B${rowNum}+C${rowNum}`, notes, timestamp]];
+        await gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `${TABS.DAILY_SALES}!A${rowNum}:F${rowNum}`,
+          valueInputOption: 'USER_ENTERED',
+          resource: { values },
+        });
+        return true;
       });
     },
 
@@ -302,6 +363,24 @@ const JambuSheets = (() => {
           resource: { values },
         });
         return response.result;
+      });
+    },
+
+    // Update an existing expense row in place, matched by its original timestamp.
+    async updateExpenseRow(timestamp, { date, category, amount = 0, type = 'Direct (COGS)', vendor = 'General', status = 'Paid', notes = '' }) {
+      _requireInit();
+      if (!timestamp) throw new Error('[JambuSheets] updateExpenseRow: timestamp required.');
+      return _call('Update expense row', async () => {
+        const rowNum = await _findSheetRowByTimestamp(TABS.EXPENSES, timestamp);
+        if (rowNum === -1) throw new Error('Original expense entry not found.');
+        const values = [[date, category, amount, type, vendor, status, notes, timestamp]];
+        await gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `${TABS.EXPENSES}!A${rowNum}:H${rowNum}`,
+          valueInputOption: 'USER_ENTERED',
+          resource: { values },
+        });
+        return true;
       });
     },
 
@@ -342,15 +421,7 @@ const JambuSheets = (() => {
       if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 0) {
         throw new Error('[JambuSheets] setTargetProfit: amount must be a non-negative number.');
       }
-      return _call('Set target profit', async () => {
-        const response = await gapi.client.sheets.spreadsheets.values.update({
-          spreadsheetId,
-          range: `${TABS.SETTINGS}!B2`,
-          valueInputOption: 'RAW',
-          resource: { values: [[amount]] },
-        });
-        return response.result;
-      });
+      return this.setSetting('target_profit', amount);
     },
 
     async getSetting(key, defaultValue = null) {
@@ -385,7 +456,7 @@ const JambuSheets = (() => {
             spreadsheetId,
             range: `${TABS.SETTINGS}!A${targetRow}:B${targetRow}`,
             valueInputOption: 'RAW',
-            resource: { values: [[key, value]] },
+            resource: { values: [[key, String(value)]] },
           });
           return updateResponse.result;
         } else {
@@ -394,7 +465,7 @@ const JambuSheets = (() => {
             range: `${TABS.SETTINGS}!A:A`,
             valueInputOption: 'RAW',
             insertDataOption: 'INSERT_ROWS',
-            resource: { values: [[key, value]] },
+            resource: { values: [[key, String(value)]] },
           });
           return appendResponse.result;
         }
@@ -424,7 +495,6 @@ const JambuSheets = (() => {
         let foundIndex = -1;
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i];
-          // Timestamp is always the last populated column (index 5 for sales, 7 for expenses)
           const lastVal = row[row.length - 1];
           if (lastVal === timestamp) { foundIndex = i; break; }
         }
