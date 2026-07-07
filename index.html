@@ -84,6 +84,7 @@
           </svg>
           <h2 class="text-base font-bold text-brand-900 tracking-tight uppercase">Jambu Batu Ledger</h2>
           <span id="role-banner" class="hidden text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"></span>
+          <span id="sync-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"></span>
         </div>
         <div class="flex items-center gap-2">
           <button id="btn-share" onclick="JambuApp.openShare()" class="p-2 rounded-xl text-gray-400 hover:text-slate-800 hover:bg-slate-100 active:scale-90 transition-all" aria-label="Share access">
@@ -165,6 +166,22 @@
               <div class="progress-track h-3 bg-slate-200/50"><div id="dash-progress-bar" class="progress-fill-bar h-full progress-animated" style="width:0%"></div></div>
             </div>
           </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-warm p-5 mb-4 animate-fadeIn">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+              Net Trend
+            </h3>
+            <div class="flex items-center gap-1">
+              <button id="trend-7" onclick="JambuDashboard.setTrendRange(7)" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-brand-600 text-white">7d</button>
+              <button id="trend-30" onclick="JambuDashboard.setTrendRange(30)" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-slate-100 text-gray-500">30d</button>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-2 mb-2"><span class="text-xs text-gray-400">Total:</span><span id="trend-total" class="text-lg font-extrabold tabular-nums text-gray-900">RM 0.00</span></div>
+          <div id="trend-bars" class="flex items-end gap-1"></div>
+          <p id="trend-note" class="text-[10px] text-gray-400 mt-2"></p>
         </div>
 
         <div id="day-breakdown-card" class="bg-white rounded-2xl shadow-warm p-5 mb-4 animate-fadeIn select-none">
@@ -332,16 +349,22 @@
         <div class="border-t border-slate-100 pt-5">
           <label class="block text-sm font-semibold text-gray-700 mb-2">Expense Categories</label>
           <div id="category-list" class="space-y-2 mb-3 max-h-44 overflow-y-auto pr-1"></div>
+          <div id="cat-color-palette" class="flex flex-wrap gap-1.5 mb-2"></div>
           <div class="flex items-center gap-2">
-            <input id="new-cat-name" type="text" placeholder="New category" class="flex-1 min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-brand-500">
+            <input id="new-cat-name" type="text" placeholder="Category name" class="flex-1 min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-brand-500">
             <select id="new-cat-type" class="px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-gray-700 cursor-pointer">
               <option value="COGS">COGS</option>
               <option value="OPEX">OPEX</option>
             </select>
-            <input id="new-cat-color" type="color" value="#6B7280" class="w-9 h-9 flex-shrink-0 rounded-lg border border-slate-200 bg-white cursor-pointer p-0.5" aria-label="Category color">
-            <button onclick="JambuApp.addCategory()" class="px-3 py-2 text-sm font-bold rounded-lg text-white gradient-btn active:scale-95 transition-all flex-shrink-0">Add</button>
+            <input id="new-cat-color" type="color" value="#6B7280" onchange="JambuApp.setCustomColor(this.value)" title="Custom color" class="w-9 h-9 flex-shrink-0 rounded-lg border border-slate-200 bg-white cursor-pointer p-0.5" aria-label="Custom category color">
+            <button id="btn-add-cat" onclick="JambuApp.addCategory()" class="px-3 py-2 text-sm font-bold rounded-lg text-white gradient-btn active:scale-95 transition-all flex-shrink-0">Add</button>
           </div>
-          <p class="text-[11px] text-gray-400 mt-2">COGS = direct cost of goods; OPEX = running costs (rent, transport…).</p>
+          <p class="text-[11px] text-gray-400 mt-2">Tap ✏️ on a category to rename or recolor it. COGS = direct cost of goods; OPEX = running costs.</p>
+        </div>
+
+        <div class="border-t border-slate-100 pt-5 grid grid-cols-2 gap-2">
+          <button id="btn-update-summary" onclick="JambuApp.updateSummary()" class="py-2.5 text-xs font-bold rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 active:scale-95 transition-all">Update Monthly Summary</button>
+          <button id="btn-export-csv" onclick="JambuApp.exportCSV()" class="py-2.5 text-xs font-bold rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 active:scale-95 transition-all">Export CSV</button>
         </div>
 
         <button id="btn-trigger-stress-test" onclick="JambuTest.runStressTest()" class="w-full py-3 text-sm font-semibold rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200/80 active:scale-95 border border-slate-200 transition-all flex items-center justify-center gap-2">Run System Stress Test (5x)</button>
@@ -486,6 +509,7 @@
   <script src="js/auth.js"></script>
   <script src="js/sheets.js"></script>
   <script src="js/share.js"></script>
+  <script src="js/offline.js"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/inventory.js"></script>
   <script src="js/statement.js"></script>
@@ -494,6 +518,11 @@
 
   <script async defer src="https://apis.google.com/js/api.js" onload="JambuAuth.handleGapiLoad()"></script>
   <script async defer src="https://accounts.google.com/gsi/client" onload="JambuAuth.handleGisLoad()"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+  </script>
 
 </body>
 </html>
