@@ -34,7 +34,7 @@ css/style.css
 js/auth.js        # <Prefix>Auth   — Google OAuth (GIS) + token/session
 js/sheets.js      # <Prefix>Sheets — Drive/Sheets CRUD, categories, row updates
 js/share.js       # <Prefix>Share  — in-app sharing + role restrictions
-js/dashboard.js   # <Prefix>Dashboard — metrics, category breakdown, recent tx
+js/dashboard.js   # <Prefix>Dashboard — metrics, daily breakdown, recent tx
 js/inventory.js   # <Prefix>Inventory — stock CRUD
 js/statement.js   # <Prefix>Statement — printable P&L
 js/test.js        # <Prefix>Test — self-test
@@ -43,8 +43,7 @@ js/app.js         # <Prefix>App — controller, CONFIG.CLIENT_ID, boot
 
 If these files are not present in the working tree, read them from the
 `jambu-batu` branch of `AbedSalleh/ayam-goreng-ledger` (the most complete
-version — bug fixes, sharing, roles, PWA, editable categories, editable
-records, daily expense view). Use that as the base and keep all of it.
+version). Use that as the base and keep all of it.
 
 ### Capabilities the base already has (preserve them)
 1. **Bug fixes:** month-scoped recent transactions; sales validation on
@@ -56,8 +55,11 @@ records, daily expense view). Use that as the base and keep all of it.
 4. **Editable records** — each dashboard transaction has edit + delete;
    editing reopens the form and updates the row in place via
    `updateSalesRow` / `updateExpenseRow` (matched by timestamp).
-5. **Daily expense breakdown** — the “Where the money went” card has a
-   Month/Day toggle (`setCatView`/`renderCategoryView`) with a date picker.
+5. **Daily Breakdown card** — shows revenue, expenses and net gain/loss for
+   a single day plus that day's expense-category breakdown; navigable one day
+   at a time via prev/next arrows or left/right swipe
+   (`navigateDay`/`renderDayBreakdown`/`_attachSwipe`). The monthly summary
+   cards above it remain month-scoped via the month arrows.
 
 ## Step 1 — Interview the owner
 
@@ -101,8 +103,7 @@ Copy each reference file and apply substitutions:
 `'YOUR_CLIENT_ID.apps.googleusercontent.com'` (never hardcode a real ID).
 
 **`js/sheets.js`** — `SPREADSHEET_NAME` → token; `DEFAULT_CATEGORIES` const
-→ the seed list (this is what a brand-new ledger starts with; users edit it
-later in Settings).
+→ the seed list (users edit it later in Settings).
 
 **`js/auth.js`** — localStorage key `*_ledger_token` → `STORAGE_KEY`.
 
@@ -117,8 +118,10 @@ rows / offline color fallback; live colors come from stored categories).
 **`index.html`** — title/meta/headings → `APP_NAME`/`STALL_DESC`; expense-type
 COGS option text → `COGS_HINT`; placeholders → `PLACEHOLDERS`; all
 `onclick`/script `onload` globals → `PREFIX`. Leave the category `<select>`
-with only its disabled placeholder option (it is populated at runtime), and
-keep the Settings category-manager block and the dashboard Month/Day toggle.
+with only its disabled placeholder option (populated at runtime), and keep
+the Settings category-manager block and the dashboard Daily Breakdown card
+(`#day-breakdown-card` with day arrows + `#day-revenue`/`#day-expenses`/
+`#day-net`).
 
 **`manifest.json`** — `name`/`short_name`/`description` → themed.
 
