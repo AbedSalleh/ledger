@@ -8,10 +8,13 @@ const JambuDashboard = (() => {
   let targetProfit = 2000;
   let allTxEntries = [];
   let dynamicColors = {}; // category name -> color, supplied by JambuApp
-  let monthExpenseRows = []; // this month's expense rows, for the breakdown views
-  let catViewMode = 'month'; // 'month' | 'day'
+  let allSalesRows = [];
+  let allExpenseRows = [];
+  let dayY, dayM, dayD;   // selected day for the daily breakdown card
+  let swipeAttached = false;
 
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
   const CATEGORY_COLORS = {
     'Fresh Guava': '#EF4444',
@@ -81,6 +84,11 @@ const JambuDashboard = (() => {
     });
   }
 
+  function isSelectedDay(dateStr) {
+    const p = parseDateTimezoneSafe(dateStr);
+    return p && p.year === dayY && p.month === dayM && p.day === dayD;
+  }
+
   function formatDateShort(dateStr) {
     if (!dateStr) return '';
     const parsed = parseDateTimezoneSafe(dateStr);
@@ -106,6 +114,9 @@ const JambuDashboard = (() => {
           JambuSheets.getInventoryData().catch(e => { console.warn('Could not load inventory:', e); return []; })
         ]);
         targetProfit = target || 2000;
+        allSalesRows = salesRows || [];
+        allExpenseRows = expenseRows || [];
+        if (dayY === undefined) { const n = new Date(); dayY = n.getFullYear(); dayM = n.getMonth(); dayD = n.getDate(); }
 
         const lowStockItems = [];
         (inventoryRows || []).forEach(row => {
@@ -126,9 +137,8 @@ const JambuDashboard = (() => {
           }
         }
 
-        const monthlySales = filterByMonth(salesRows || [], 0);
-        const monthlyExpenses = filterByMonth(expenseRows || [], 0);
-        monthExpenseRows = monthlyExpenses;
+        const monthlySales = filterByMonth(allSalesRows, 0);
+        const monthlyExpenses = filterByMonth(allExpenseRows, 0);
 
         let totalCash = 0, totalQR = 0, totalRevenue = 0, totalExpenses = 0, totalCOGS = 0, totalOPEX = 0, totalPayable = 0;
         monthlySales.forEach(row => {
@@ -161,10 +171,11 @@ const JambuDashboard = (() => {
         } else {
           this._hideEmptyState();
           this._renderMetrics({ revenue: totalRevenue, cash: totalCash, qr: totalQR, expenses: totalExpenses, cogs: totalCOGS, opex: totalOPEX, grossProfit, grossMargin: grossMarginPct, payable: totalPayable, profit: netProfit, progressPct });
-          this.renderCategoryView();
           // Bug fix #1: month-filtered arrays so Recent Transactions respect the selected month
           this._renderRecent(monthlySales, monthlyExpenses);
         }
+        this.renderDayBreakdown();
+        this._attachSwipe();
       } catch (error) {
         console.error('Dashboard load error:', error);
       } finally {
@@ -172,47 +183,67 @@ const JambuDashboard = (() => {
       }
     },
 
-    // Switch the expense breakdown between whole-month and a single day.
-    setCatView(mode) {
-      catViewMode = (mode === 'day') ? 'day' : 'month';
-      const mBtn = $('cat-view-month'), dBtn = $('cat-view-day'), dateEl = $('cat-view-date');
-      const setActive = (btn, active) => {
-        if (!btn) return;
-        btn.classList.toggle('bg-brand-600', active);
-        btn.classList.toggle('text-white', active);
-        btn.classList.toggle('bg-slate-100', !active);
-        btn.classList.toggle('text-gray-500', !active);
-      };
-      setActive(mBtn, catViewMode === 'month');
-      setActive(dBtn, catViewMode === 'day');
-      if (dateEl) {
-        if (catViewMode === 'day') {
-          if (!dateEl.value) {
-            const n = new Date();
-            dateEl.value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
-          }
-          dateEl.classList.remove('hidden');
-        } else {
-          dateEl.classList.add('hidden');
-        }
-      }
-      this.renderCategoryView();
+    // ---- Daily breakdown card (revenue / expenses / net for one day) ----
+    navigateDay(delta) {
+      if (dayY === undefined) { const n = new Date(); dayY = n.getFullYear(); dayM = n.getMonth(); dayD = n.getDate(); }
+      const d = new Date(dayY, dayM, dayD);
+      d.setDate(d.getDate() + delta);
+      dayY = d.getFullYear(); dayM = d.getMonth(); dayD = d.getDate();
+      this.renderDayBreakdown();
     },
 
-    // Render the breakdown for whichever view is active.
-    renderCategoryView() {
-      let rows = monthExpenseRows;
-      if (catViewMode === 'day') {
-        const dateEl = $('cat-view-date');
-        const sel = dateEl && dateEl.value ? parseDateTimezoneSafe(dateEl.value) : null;
-        rows = sel ? monthExpenseRows.filter(r => {
-          const rp = parseDateTimezoneSafe(r[0]);
-          return rp && rp.year === sel.year && rp.month === sel.month && rp.day === sel.day;
-        }) : [];
+    renderDayBreakdown() {
+      if (dayY === undefined) { const n = new Date(); dayY = n.getFullYear(); dayM = n.getMonth(); dayD = n.getDate(); }
+
+      const daySales = allSalesRows.filter(r => isSelectedDay(r[0]));
+      const dayExpenses = allExpenseRows.filter(r => isSelectedDay(r[0]));
+
+      let revenue = 0;
+      daySales.forEach(r => { revenue += (parseFloat(r[1]) || 0) + (parseFloat(r[2]) || 0); });
+      let expenses = 0;
+      dayExpenses.forEach(r => { expenses += parseFloat(r[2]) || 0; });
+      const net = revenue - expenses;
+
+      // Label (with a "Today" hint)
+      const label = $('day-label');
+      if (label) {
+        const dObj = new Date(dayY, dayM, dayD);
+        const now = new Date();
+        const isToday = dayY === now.getFullYear() && dayM === now.getMonth() && dayD === now.getDate();
+        label.textContent = `${WEEKDAYS[dObj.getDay()]}, ${dayD} ${MONTHS[dayM].slice(0,3)} ${dayY}` + (isToday ? ' · Today' : '');
       }
-      let total = 0;
-      rows.forEach(r => { total += parseFloat(r[2]) || 0; });
-      this._renderCategories(rows, total);
+
+      const revEl = $('day-revenue'); if (revEl) revEl.textContent = formatRM(revenue);
+      const expEl = $('day-expenses'); if (expEl) expEl.textContent = formatRM(expenses);
+      const netEl = $('day-net');
+      if (netEl) {
+        netEl.textContent = (net >= 0 ? '+' : '−') + formatRM(Math.abs(net));
+        netEl.style.color = net >= 0 ? '#065F46' : '#991B1B';
+      }
+      const netTag = $('day-net-tag');
+      if (netTag) {
+        netTag.textContent = net > 0 ? 'Profit' : net < 0 ? 'Loss' : 'Break-even';
+      }
+
+      this._renderCategories(dayExpenses, expenses);
+    },
+
+    _attachSwipe() {
+      if (swipeAttached) return;
+      const card = $('day-breakdown-card');
+      if (!card) return;
+      let startX = 0, startY = 0;
+      card.addEventListener('touchstart', (e) => {
+        const t = e.changedTouches[0]; startX = t.clientX; startY = t.clientY;
+      }, { passive: true });
+      card.addEventListener('touchend', (e) => {
+        const t = e.changedTouches[0];
+        const dx = t.clientX - startX, dy = t.clientY - startY;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+          this.navigateDay(dx < 0 ? 1 : -1); // swipe left = next day, swipe right = previous day
+        }
+      }, { passive: true });
+      swipeAttached = true;
     },
 
     _renderEmptyState() {
@@ -229,8 +260,6 @@ const JambuDashboard = (() => {
       if (progressPct) progressPct.textContent = '0%';
       const profitEl = $('dash-profit');
       if (profitEl) profitEl.style.color = '';
-      const categoriesEl = $('dash-categories');
-      if (categoriesEl) categoriesEl.innerHTML = '';
       const recentEl = $('dash-recent');
       if (recentEl) recentEl.innerHTML = `<div style="text-align:center;padding:2.5rem 1rem;opacity:0.7;"><p style="font-size:1.1rem;font-weight:600;color:#292524;">No data for this month yet</p><p style="font-size:0.9rem;color:#78716C;">Start by recording a sale!</p></div>`;
     },
@@ -276,8 +305,7 @@ const JambuDashboard = (() => {
       if (!container) return;
       container.innerHTML = '';
       if (!expenses.length || total === 0) {
-        const msg = catViewMode === 'day' ? 'No expenses on the selected day' : 'No expenses recorded this month';
-        container.innerHTML = `<p style="text-align:center;padding:1rem;opacity:0.5;font-size:0.85rem;color:#78716C;">${msg}</p>`;
+        container.innerHTML = '<p style="text-align:center;padding:1rem;opacity:0.5;font-size:0.85rem;color:#78716C;">No expenses on this day</p>';
         return;
       }
       const grouped = {};
