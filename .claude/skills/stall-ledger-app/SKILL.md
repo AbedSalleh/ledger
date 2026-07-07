@@ -32,9 +32,9 @@ manifest.json
 icon.svg
 css/style.css
 js/auth.js        # <Prefix>Auth   — Google OAuth (GIS) + token/session
-js/sheets.js      # <Prefix>Sheets — Drive/Sheets CRUD, shared-ledger loader
+js/sheets.js      # <Prefix>Sheets — Drive/Sheets CRUD, categories, row updates
 js/share.js       # <Prefix>Share  — in-app sharing + role restrictions
-js/dashboard.js   # <Prefix>Dashboard — metrics, category bars, recent tx
+js/dashboard.js   # <Prefix>Dashboard — metrics, category breakdown, recent tx
 js/inventory.js   # <Prefix>Inventory — stock CRUD
 js/statement.js   # <Prefix>Statement — printable P&L
 js/test.js        # <Prefix>Test — self-test
@@ -43,33 +43,34 @@ js/app.js         # <Prefix>App — controller, CONFIG.CLIENT_ID, boot
 
 If these files are not present in the working tree, read them from the
 `jambu-batu` branch of `AbedSalleh/ayam-goreng-ledger` (the most complete
-version, which includes the bug fixes, sharing, roles and PWA manifest) and
-use that as the base. The bug fixes below are already applied there — keep
-them:
+version — bug fixes, sharing, roles, PWA, editable categories, editable
+records, daily expense view). Use that as the base and keep all of it.
 
-1. Dashboard recent-transactions respect the selected month
-   (`_renderRecent(monthlySales, monthlyExpenses)`).
-2. Sales validation runs on **parsed** floats (`cashVal === 0 && qrVal === 0`),
-   not raw strings.
-3. `deleteRowByTimestamp` matches the **last column** only
-   (`row[row.length - 1] === timestamp`), not `row.includes(timestamp)`.
+### Capabilities the base already has (preserve them)
+1. **Bug fixes:** month-scoped recent transactions; sales validation on
+   parsed floats; `deleteRowByTimestamp` matches the last column only.
+2. **In-app sharing** with `viewer`/`cashier`/`full` roles (link-only) + PWA.
+3. **User-editable categories** — stored in the Settings tab (key
+   `categories`, JSON of `{name,type:'COGS'|'OPEX',color}`), managed from a
+   Settings UI; the expense dropdown and dashboard colors read from it.
+4. **Editable records** — each dashboard transaction has edit + delete;
+   editing reopens the form and updates the row in place via
+   `updateSalesRow` / `updateExpenseRow` (matched by timestamp).
+5. **Daily expense breakdown** — the “Where the money went” card has a
+   Month/Day toggle (`setCatView`/`renderCategoryView`) with a date picker.
 
 ## Step 1 — Interview the owner
 
 Ask (batch the questions, suggest sensible defaults):
 
-1. **What does the stall sell?** (e.g. “roti canai”, “nasi lemak”, “bubble
-   tea”, “flowers”). This drives the whole theme.
-2. **App name** — default `“<Trade> Ledger”` (e.g. “Roti Canai Ledger”).
-3. **Direct cost (COGS) categories** — the raw materials/ingredients that go
-   directly into the product. Propose 3–5 based on the trade and let them
-   confirm/edit.
-4. **Currency** — default `RM` (the engine uses `RM`; change the `formatRM`
-   prefix in `dashboard.js`, `statement.js` if different).
-5. **Accent color** (optional) — default slate/teal as in the base.
+1. **What does the stall sell?** (drives the whole theme).
+2. **App name** — default `“<Trade> Ledger”`.
+3. **Direct cost (COGS) categories** — propose 3–5 for the trade; the owner
+   can add/remove more in-app later, so these are just the seed defaults.
+4. **Currency** — default `RM`.
+5. **Accent color** (optional).
 
-Then derive the parameter set and **show it to the owner for confirmation**
-before generating.
+Show the derived parameter set for confirmation before generating.
 
 ## Step 2 — Derive the parameter set
 
@@ -80,98 +81,77 @@ before generating.
 | `PREFIX` | PascalCase JS global prefix (replaces `Ayam`/`Jambu`) | `Roti` |
 | `SPREADSHEET_NAME` | Drive file name (underscores) | `Roti_Canai_Ledger` |
 | `STORAGE_KEY` | localStorage token key | `roti_ledger_token` |
-| `DIRECT_CATEGORIES` | COGS list (array) | `['Flour','Ghee/Oil','Dhal/Curry','Packaging']` |
-| `ALL_CATEGORIES` | COGS + OPEX (`Rent/Stall`,`Transport`,`Others`) | … |
-| `CATEGORY_COLORS` | hex per category | see base palette |
-| `COGS_HINT` | text in expense-type option | `Direct (COGS) — Flour, ghee, dhal, packaging` |
+| `DEFAULT_CATEGORIES` | seed list `{name,type,color}` | flour(COGS), ghee(COGS), rent(OPEX)… |
+| `COGS_HINT` | text in the expense-type option | `Direct (COGS) — Flour, ghee, dhal…` |
 | `PLACEHOLDERS` | example notes/vendor strings | trade-appropriate |
 | `ACCENT` | optional brand color | `#0F172A` |
 
-The `PREFIX` must be a valid JS identifier and unique — it replaces every
-`Ayam`/`Jambu` occurrence to form `RotiApp`, `RotiAuth`, `RotiSheets`,
-`RotiDashboard`, `RotiInventory`, `RotiStatement`, `RotiTest`, `RotiShare`.
+`PREFIX` must be a valid, unique JS identifier — it forms `RotiApp`,
+`RotiAuth`, `RotiSheets`, `RotiDashboard`, `RotiInventory`, `RotiStatement`,
+`RotiTest`, `RotiShare`.
 
 ## Step 3 — Generate the files
 
 Copy each reference file and apply substitutions:
 
-**All `js/*.js`**
-- Replace the global prefix `Ayam` (or `Jambu`) → `PREFIX` everywhere
-  (object names, internal references, `[Ayam…]` log prefixes, comments).
+**All `js/*.js`** — replace prefix `Ayam`/`Jambu` → `PREFIX` everywhere
+(object names, references, `[Ayam…]` log tags, comments).
 
-**`js/app.js`**
-- `CONFIG.CLIENT_ID` → set to the placeholder
-  `'YOUR_CLIENT_ID.apps.googleusercontent.com'` (the owner supplies their own
-  — see Step 4). Never hardcode someone else’s client ID.
-- `directCategories` array → `DIRECT_CATEGORIES`.
+**`js/app.js`** — `CONFIG.CLIENT_ID` → placeholder
+`'YOUR_CLIENT_ID.apps.googleusercontent.com'` (never hardcode a real ID).
 
-**`js/sheets.js`**
-- `SPREADSHEET_NAME` → `SPREADSHEET_NAME`.
-- Legacy `directCategories` fallback (if present) → `DIRECT_CATEGORIES`.
+**`js/sheets.js`** — `SPREADSHEET_NAME` → token; `DEFAULT_CATEGORIES` const
+→ the seed list (this is what a brand-new ledger starts with; users edit it
+later in Settings).
 
-**`js/auth.js`**
-- localStorage key `*_ledger_token` → `STORAGE_KEY` (every occurrence).
+**`js/auth.js`** — localStorage key `*_ledger_token` → `STORAGE_KEY`.
 
-**`js/dashboard.js`**
-- `CATEGORY_COLORS` map → keys = `ALL_CATEGORIES`, values = `CATEGORY_COLORS`.
-- `directCategories` fallback → `DIRECT_CATEGORIES`.
+**`js/dashboard.js`** — the `CATEGORY_COLORS` fallback map and the legacy
+`directCategories` fallback → match the seed categories (only used for old
+rows / offline color fallback; live colors come from stored categories).
 
-**`js/statement.js`**
-- legacy `directCategories` fallback → `DIRECT_CATEGORIES`.
+**`js/statement.js`** — legacy `directCategories` fallback → seed COGS names.
 
-**`js/test.js`**
-- sample `expenseCategory` → any item from `DIRECT_CATEGORIES`.
+**`js/test.js`** — sample `expenseCategory` → a seed COGS category.
 
-**`index.html`**
-- `<title>`, meta description, login `<h1>`/subtitle, header `<h2>`,
-  statement header → `APP_NAME` / `STALL_DESC`.
-- Expense category `<option>`s → `ALL_CATEGORIES`.
-- Expense-type COGS option text → `COGS_HINT`.
-- Sales/expense/vendor placeholders → `PLACEHOLDERS`.
-- All `onclick="AyamApp.…"` and other globals → `PREFIX`.
-- Script `onload` handlers → `PREFIX`Auth.
-- `apple-mobile-web-app-title` → short app name.
+**`index.html`** — title/meta/headings → `APP_NAME`/`STALL_DESC`; expense-type
+COGS option text → `COGS_HINT`; placeholders → `PLACEHOLDERS`; all
+`onclick`/script `onload` globals → `PREFIX`. Leave the category `<select>`
+with only its disabled placeholder option (it is populated at runtime), and
+keep the Settings category-manager block and the dashboard Month/Day toggle.
 
-**`manifest.json`**
-- `name`, `short_name`, `description` → themed.
+**`manifest.json`** — `name`/`short_name`/`description` → themed.
 
-**`css/style.css`**
-- Header comment → `APP_NAME`. If `ACCENT` chosen, adjust the gradient/
-  brand variables accordingly (and the Tailwind `brand` palette block inside
-  `index.html`’s `<script>tailwind.config…`).
+**`css/style.css`** — header comment → `APP_NAME`; if `ACCENT` chosen, adjust
+the gradient/brand vars (and the Tailwind `brand` palette in `index.html`).
 
-**`icon.svg`** — optionally recolor / restyle to suit the trade.
+**`icon.svg`** — optionally recolor / restyle for the trade.
 
 ### Integrity checks before finishing
-- Grep the output for any leftover `Ayam` or `Jambu` — there must be none.
-- Confirm every `<Prefix>X` global referenced in `index.html` exists in JS.
-- Keep the three bug fixes intact.
-- `CONFIG.CLIENT_ID` is the placeholder, not a real ID.
+- No leftover `Ayam`/`Jambu` anywhere.
+- Every `<Prefix>X` global referenced in `index.html` exists in JS.
+- `CONFIG.CLIENT_ID` is the placeholder.
+- All five preserved capabilities above still wired up.
 
 ## Step 4 — Tell the owner the setup steps
 
-The app needs the owner’s **own** Google OAuth client (the code ships with a
-placeholder):
-
-1. Google Cloud Console → new/existing project.
-2. Enable **Google Sheets API** and **Google Drive API**.
-3. Configure the **OAuth consent screen** (External; add themselves as a test
-   user).
-4. **Credentials → Create → OAuth client ID → Web application**.
-5. Add the hosting origin to **Authorized JavaScript origins** (e.g.
-   `https://<user>.github.io`). Use the bare origin — no path, no trailing slash.
+1. Google Cloud Console → project.
+2. Enable **Google Sheets API** + **Google Drive API**.
+3. Configure **OAuth consent screen** (External; add self as test user).
+4. **Credentials → OAuth client ID → Web application**.
+5. Add the hosting origin (bare, e.g. `https://<user>.github.io`) to
+   **Authorized JavaScript origins**.
 6. Put the client ID into `CONFIG.CLIENT_ID` in `js/app.js`.
 
-Hosting (GitHub Pages): push the files to a repo/branch, then Settings →
-Pages → Deploy from a branch → root. Live at `https://<user>.github.io/<repo>/`.
+Hosting (GitHub Pages): push files, Settings → Pages → Deploy from a branch
+→ root. Live at `https://<user>.github.io/<repo>/`.
 
-## Notes / gotchas (carry forward)
-- `invalid_client` from Google = the client ID isn’t a valid web client the
-  user owns, **or** the page is served from `file://`/an unregistered origin.
-  Not an app bug.
-- Each themed app uses its **own** `SPREADSHEET_NAME`, so multiple ledgers
-  coexist in one Drive without touching each other.
+## Notes / gotchas
+- `invalid_client` = the client ID isn’t a valid web client the user owns,
+  or the page is on `file://`/an unregistered origin. Not an app bug.
+- Each themed app uses its own `SPREADSHEET_NAME`, so ledgers never collide.
 - Sharing: `viewer` = Drive reader (hard-enforced); `cashier` = Drive writer
-  + UI hiding only (convenience, not a security boundary). Make this clear.
+  + UI hiding only (convenience, not a security boundary). The category
+  manager sits in Settings, so it is hidden from cashiers by design.
 - Link-only sharing: the worker must open the `?sheet=<id>&role=<role>` link
-  (bookmark / Add to Home Screen) — the plain link gives them their own ledger.
+  (bookmark / Add to Home Screen); the plain link gives them their own ledger.

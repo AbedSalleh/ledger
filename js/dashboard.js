@@ -8,10 +8,11 @@ const JambuDashboard = (() => {
   let targetProfit = 2000;
   let allTxEntries = [];
   let dynamicColors = {}; // category name -> color, supplied by JambuApp
+  let monthExpenseRows = []; // this month's expense rows, for the breakdown views
+  let catViewMode = 'month'; // 'month' | 'day'
 
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-  // Fallback palette for categories with no stored color.
   const CATEGORY_COLORS = {
     'Fresh Guava': '#EF4444',
     'Fertilizer/Pesticide': '#F59E0B',
@@ -127,6 +128,7 @@ const JambuDashboard = (() => {
 
         const monthlySales = filterByMonth(salesRows || [], 0);
         const monthlyExpenses = filterByMonth(expenseRows || [], 0);
+        monthExpenseRows = monthlyExpenses;
 
         let totalCash = 0, totalQR = 0, totalRevenue = 0, totalExpenses = 0, totalCOGS = 0, totalOPEX = 0, totalPayable = 0;
         monthlySales.forEach(row => {
@@ -159,7 +161,7 @@ const JambuDashboard = (() => {
         } else {
           this._hideEmptyState();
           this._renderMetrics({ revenue: totalRevenue, cash: totalCash, qr: totalQR, expenses: totalExpenses, cogs: totalCOGS, opex: totalOPEX, grossProfit, grossMargin: grossMarginPct, payable: totalPayable, profit: netProfit, progressPct });
-          this._renderCategories(monthlyExpenses, totalExpenses);
+          this.renderCategoryView();
           // Bug fix #1: month-filtered arrays so Recent Transactions respect the selected month
           this._renderRecent(monthlySales, monthlyExpenses);
         }
@@ -168,6 +170,49 @@ const JambuDashboard = (() => {
       } finally {
         if (loading) loading.classList.add('hidden');
       }
+    },
+
+    // Switch the expense breakdown between whole-month and a single day.
+    setCatView(mode) {
+      catViewMode = (mode === 'day') ? 'day' : 'month';
+      const mBtn = $('cat-view-month'), dBtn = $('cat-view-day'), dateEl = $('cat-view-date');
+      const setActive = (btn, active) => {
+        if (!btn) return;
+        btn.classList.toggle('bg-brand-600', active);
+        btn.classList.toggle('text-white', active);
+        btn.classList.toggle('bg-slate-100', !active);
+        btn.classList.toggle('text-gray-500', !active);
+      };
+      setActive(mBtn, catViewMode === 'month');
+      setActive(dBtn, catViewMode === 'day');
+      if (dateEl) {
+        if (catViewMode === 'day') {
+          if (!dateEl.value) {
+            const n = new Date();
+            dateEl.value = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+          }
+          dateEl.classList.remove('hidden');
+        } else {
+          dateEl.classList.add('hidden');
+        }
+      }
+      this.renderCategoryView();
+    },
+
+    // Render the breakdown for whichever view is active.
+    renderCategoryView() {
+      let rows = monthExpenseRows;
+      if (catViewMode === 'day') {
+        const dateEl = $('cat-view-date');
+        const sel = dateEl && dateEl.value ? parseDateTimezoneSafe(dateEl.value) : null;
+        rows = sel ? monthExpenseRows.filter(r => {
+          const rp = parseDateTimezoneSafe(r[0]);
+          return rp && rp.year === sel.year && rp.month === sel.month && rp.day === sel.day;
+        }) : [];
+      }
+      let total = 0;
+      rows.forEach(r => { total += parseFloat(r[2]) || 0; });
+      this._renderCategories(rows, total);
     },
 
     _renderEmptyState() {
@@ -231,7 +276,8 @@ const JambuDashboard = (() => {
       if (!container) return;
       container.innerHTML = '';
       if (!expenses.length || total === 0) {
-        container.innerHTML = '<p style="text-align:center;padding:1rem;opacity:0.5;font-size:0.85rem;color:#78716C;">No expenses recorded this month</p>';
+        const msg = catViewMode === 'day' ? 'No expenses on the selected day' : 'No expenses recorded this month';
+        container.innerHTML = `<p style="text-align:center;padding:1rem;opacity:0.5;font-size:0.85rem;color:#78716C;">${msg}</p>`;
         return;
       }
       const grouped = {};
