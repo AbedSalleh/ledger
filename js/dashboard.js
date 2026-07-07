@@ -12,6 +12,7 @@ const JambuDashboard = (() => {
   let allExpenseRows = [];
   let dayY, dayM, dayD;   // selected day for the daily breakdown card
   let swipeAttached = false;
+  let trendDays = 7;      // 7 or 30
 
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -174,12 +175,90 @@ const JambuDashboard = (() => {
           // Bug fix #1: month-filtered arrays so Recent Transactions respect the selected month
           this._renderRecent(monthlySales, monthlyExpenses);
         }
+        this.renderTrend();
         this.renderDayBreakdown();
         this._attachSwipe();
       } catch (error) {
         console.error('Dashboard load error:', error);
       } finally {
         if (loading) loading.classList.add('hidden');
+      }
+    },
+
+    // ---- Net trend (last 7/30 days) ----
+    setTrendRange(n) {
+      trendDays = n === 30 ? 30 : 7;
+      const b7 = $('trend-7'), b30 = $('trend-30');
+      const setActive = (btn, active) => {
+        if (!btn) return;
+        btn.classList.toggle('bg-brand-600', active);
+        btn.classList.toggle('text-white', active);
+        btn.classList.toggle('bg-slate-100', !active);
+        btn.classList.toggle('text-gray-500', !active);
+      };
+      setActive(b7, trendDays === 7);
+      setActive(b30, trendDays === 30);
+      this.renderTrend();
+    },
+
+    renderTrend() {
+      const bars = $('trend-bars');
+      if (!bars) return;
+      const today = new Date();
+      const days = [];
+      for (let i = trendDays - 1; i >= 0; i--) {
+        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+        days.push({ y: d.getFullYear(), m: d.getMonth(), d: d.getDate(), rev: 0, exp: 0 });
+      }
+      const find = (p) => days.find(x => x.y === p.year && x.m === p.month && x.d === p.day);
+      allSalesRows.forEach(r => {
+        const p = parseDateTimezoneSafe(r[0]);
+        if (!p) return;
+        const dd = find(p);
+        if (dd) dd.rev += (parseFloat(r[1]) || 0) + (parseFloat(r[2]) || 0);
+      });
+      allExpenseRows.forEach(r => {
+        const p = parseDateTimezoneSafe(r[0]);
+        if (!p) return;
+        const dd = find(p);
+        if (dd) dd.exp += parseFloat(r[2]) || 0;
+      });
+      days.forEach(x => { x.net = x.rev - x.exp; });
+
+      const total = days.reduce((s, x) => s + x.net, 0);
+      const totEl = $('trend-total');
+      if (totEl) {
+        totEl.textContent = (total >= 0 ? '+' : '−') + formatRM(Math.abs(total));
+        totEl.style.color = total >= 0 ? '#065F46' : '#991B1B';
+      }
+
+      const maxAbs = Math.max(...days.map(x => Math.abs(x.net)), 1);
+      bars.innerHTML = '';
+      days.forEach(x => {
+        const col = document.createElement('div');
+        col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:88px;gap:2px;min-width:0;';
+        const bar = document.createElement('div');
+        const h = x.net === 0 ? 3 : Math.max(5, Math.round((Math.abs(x.net) / maxAbs) * 72));
+        bar.style.cssText = `width:60%;max-width:16px;border-radius:3px;height:${h}px;background:${x.net > 0 ? '#10B981' : x.net < 0 ? '#F87171' : '#CBD5E1'};`;
+        bar.title = `${x.d} ${MONTHS[x.m].slice(0, 3)}: ${x.net >= 0 ? '+' : '−'}${formatRM(Math.abs(x.net))}`;
+        col.appendChild(bar);
+        if (trendDays === 7) {
+          const lb = document.createElement('div');
+          lb.style.cssText = 'font-size:9px;color:#94A3B8;';
+          lb.textContent = WEEKDAYS[new Date(x.y, x.m, x.d).getDay()].slice(0, 2);
+          col.appendChild(lb);
+        }
+        bars.appendChild(col);
+      });
+
+      let best = days[0], worst = days[0];
+      days.forEach(x => {
+        if (x.net > best.net) best = x;
+        if (x.net < worst.net) worst = x;
+      });
+      const note = $('trend-note');
+      if (note) {
+        note.textContent = `Best: ${best.d} ${MONTHS[best.m].slice(0, 3)} (${best.net >= 0 ? '+' : '−'}${formatRM(Math.abs(best.net))}) · Worst: ${worst.d} ${MONTHS[worst.m].slice(0, 3)} (${worst.net >= 0 ? '+' : '−'}${formatRM(Math.abs(worst.net))})`;
       }
     },
 
@@ -204,7 +283,6 @@ const JambuDashboard = (() => {
       dayExpenses.forEach(r => { expenses += parseFloat(r[2]) || 0; });
       const net = revenue - expenses;
 
-      // Label (with a "Today" hint)
       const label = $('day-label');
       if (label) {
         const dObj = new Date(dayY, dayM, dayD);
@@ -240,7 +318,7 @@ const JambuDashboard = (() => {
         const t = e.changedTouches[0];
         const dx = t.clientX - startX, dy = t.clientY - startY;
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-          this.navigateDay(dx < 0 ? 1 : -1); // swipe left = next day, swipe right = previous day
+          this.navigateDay(dx < 0 ? 1 : -1); // swipe left = next day, right = previous
         }
       }, { passive: true });
       swipeAttached = true;
