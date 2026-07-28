@@ -1,5 +1,5 @@
-// Jambu Batu Ledger — service worker (app-shell cache-first)
-const CACHE = 'jambu-shell-v1';
+// Ledger — service worker (app-shell cache-first)
+const CACHE = 'jambu-shell-v2';
 const ASSETS = [
   '.',
   'index.html',
@@ -32,7 +32,6 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  // Never intercept Google APIs / auth — only same-origin shell assets.
   if (url.origin !== location.origin) return;
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(

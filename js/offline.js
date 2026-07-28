@@ -1,9 +1,8 @@
 // ============================================================
 // JambuOffline — offline cache + write queue
-// Caches the last-loaded sheet data so the dashboard renders
-// without a connection, and queues sales/expense entries made
-// offline, flushing them to Google Sheets when back online.
-// Exposes a global `JambuOffline` object.
+// Caches last-loaded sheet data per ledger and queues sales/
+// expense entries made offline; queued items remember which
+// ledger they belong to and only flush into that ledger.
 // ============================================================
 
 const JambuOffline = (() => {
@@ -40,9 +39,9 @@ const JambuOffline = (() => {
       try { return JSON.parse(localStorage.getItem(CACHE_PREFIX + key)) || []; } catch (e) { return []; }
     },
 
-    enqueue(kind, payload) {
+    enqueue(kind, payload, sheetId) {
       const q = getQueue();
-      q.push({ kind, payload, queuedAt: new Date().toISOString() });
+      q.push({ kind, payload, sheetId: sheetId || null, queuedAt: new Date().toISOString() });
       setQueue(q);
     },
 
@@ -50,25 +49,29 @@ const JambuOffline = (() => {
 
     updateBadge,
 
-    // Replays queued writes in order; stops at the first failure so
-    // nothing is lost or duplicated.
+    // Replays queued writes for the CURRENTLY ACTIVE ledger; items for other
+    // ledgers stay queued until that ledger is active. Stops on first failure.
     async flush() {
-      let q = getQueue();
+      const q = getQueue();
+      if (!q.length) return 0;
+      const remaining = [];
       let done = 0;
-      while (q.length) {
-        const item = q[0];
+      let failed = false;
+      for (const item of q) {
+        if (failed) { remaining.push(item); continue; }
+        const cur = (typeof JambuSheets !== 'undefined') ? JambuSheets.getSpreadsheetId() : null;
+        if (item.sheetId && cur && item.sheetId !== cur) { remaining.push(item); continue; }
         try {
           if (item.kind === 'sale') await JambuSheets.appendSalesRow(item.payload);
           else if (item.kind === 'expense') await JambuSheets.appendExpenseRow(item.payload);
-          q = getQueue();
-          q.shift();
-          setQueue(q);
           done++;
         } catch (e) {
           console.warn('[JambuOffline] Flush stopped:', e.message);
-          break;
+          remaining.push(item);
+          failed = true;
         }
       }
+      setQueue(remaining);
       return done;
     },
 
@@ -81,7 +84,6 @@ const JambuOffline = (() => {
           if (typeof JambuDashboard !== 'undefined') JambuDashboard.load();
         }
       });
-      // Try a flush shortly after boot too, in case entries were queued last session.
       setTimeout(async () => {
         if (navigator.onLine && getQueue().length && typeof JambuSheets !== 'undefined' && JambuSheets.getSpreadsheetId()) {
           const n = await this.flush();

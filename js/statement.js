@@ -1,8 +1,10 @@
 // ============================================================
 // JambuStatement — Printable Financial Report Generator
+// Compiles the active business's sales & expenses into a P&L.
 // ============================================================
 
 const JambuStatement = (() => {
+
   function $(id) { return document.getElementById(id); }
 
   function formatRM(amount) {
@@ -35,8 +37,15 @@ const JambuStatement = (() => {
         month = JambuDashboard.getCurrentMonth();
         year = JambuDashboard.getCurrentYear();
       }
+
       const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       $('stmt-period-label').textContent = `${MONTH_NAMES[month]} ${year}`;
+
+      // Statement header carries the active business's name.
+      const bizName = (typeof JambuSheets !== 'undefined') ? JambuSheets.getActiveLedgerName() : 'Ledger';
+      const nameEl = $('stmt-biz-name');
+      if (nameEl) nameEl.textContent = bizName;
+
       if (typeof JambuApp !== 'undefined') JambuApp.showToast('Compiling statement...', 'info');
 
       try {
@@ -46,12 +55,10 @@ const JambuStatement = (() => {
         ]);
 
         const monthlySales = (salesRows || []).filter(row => {
-          if (!row[0]) return false;
           const parsed = parseDateTimezoneSafe(row[0]);
           return parsed && parsed.month === month && parsed.year === year;
         });
         const monthlyExpenses = (expenseRows || []).filter(row => {
-          if (!row[0]) return false;
           const parsed = parseDateTimezoneSafe(row[0]);
           return parsed && parsed.month === month && parsed.year === year;
         });
@@ -72,10 +79,7 @@ const JambuStatement = (() => {
           const cat = row[1] || 'Others';
           const amt = parseFloat(row[2]) || 0;
           let type = row[3];
-          if (row.length <= 5 || !type) {
-            const directCategories = ['Fresh Guava', 'Fertilizer/Pesticide', 'Seedlings/Soil', 'Packaging'];
-            type = directCategories.includes(row[1]) ? 'Direct (COGS)' : 'Indirect (OPEX)';
-          }
+          if (row.length <= 5 || !type) type = 'Indirect (OPEX)'; // legacy rows without a type
           if (type === 'Direct (COGS)') {
             totalCOGS += amt;
             cogsBreakdown[cat] = (cogsBreakdown[cat] || 0) + amt;
@@ -125,9 +129,7 @@ const JambuStatement = (() => {
 
         const ledgerEntries = [];
         monthlySales.forEach(row => {
-          const cash = parseFloat(row[1]) || 0;
-          const qr = parseFloat(row[2]) || 0;
-          const total = cash + qr;
+          const total = (parseFloat(row[1]) || 0) + (parseFloat(row[2]) || 0);
           if (total === 0) return;
           ledgerEntries.push({ date: row[0], type: 'Sale', category: 'Sales Revenue', ref: row[4] ? `Sales notes: ${row[4]}` : 'Daily sales record', amount: total });
         });
@@ -169,12 +171,15 @@ const JambuStatement = (() => {
         }
 
         const now = new Date();
-        $('stmt-gen-timestamp').textContent = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        $('stmt-gen-timestamp').textContent = now.getFullYear() + '-' +
+          String(now.getMonth() + 1).padStart(2, '0') + '-' +
+          String(now.getDate()).padStart(2, '0') + ' ' +
+          String(now.getHours()).padStart(2, '0') + ':' +
+          String(now.getMinutes()).padStart(2, '0');
 
         $('login-screen').style.display = 'none';
         $('app-screen').style.display = 'none';
         $('view-statement').style.display = 'block';
-
       } catch (err) {
         console.error('Error generating statement:', err);
         if (typeof JambuApp !== 'undefined') JambuApp.showToast('Failed to generate statement.', 'error');

@@ -1,7 +1,7 @@
 {
-  "name": "Jambu Batu Ledger",
-  "short_name": "Jambu Ledger",
-  "description": "Guava stall daily revenue, expenses and profit tracking.",
+  "name": "Ledger",
+  "short_name": "Ledger",
+  "description": "Track sales, expenses and profit for any of your businesses — all in one app.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

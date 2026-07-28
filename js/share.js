@@ -1,5 +1,5 @@
 // ============================================================
-// JambuShare — In-app sharing of the ledger spreadsheet
+// JambuShare — In-app sharing of the ACTIVE ledger spreadsheet
 // Grants Drive access to a specific email and builds a link
 // that carries the spreadsheet ID (link-only mode).
 //
@@ -11,8 +11,6 @@
 // NOTE: 'cashier' restrictions are UI-level only — a Drive
 // 'writer' technically has full edit rights to the sheet.
 // Only 'viewer' (Drive reader) is a hard security boundary.
-//
-// Exposes a global `JambuShare` object.
 // ============================================================
 
 const JambuShare = (() => {
@@ -27,13 +25,11 @@ const JambuShare = (() => {
   function _params() { return new URLSearchParams(window.location.search); }
 
   return {
-    /** Spreadsheet ID passed via the shared link, or null. */
     getSharedSheetId() {
       const v = _params().get('sheet');
       return v && v.trim() ? v.trim() : null;
     },
 
-    /** Access role from the link; defaults to 'full' (owner). */
     getRole() {
       const r = _params().get('role');
       return (r && LEVELS[r]) ? r : 'full';
@@ -114,6 +110,13 @@ const JambuShare = (() => {
     /** Apply UI restrictions for the active role after sign-in. */
     applyRole(role) {
       const hide = (id) => { const el = $(id); if (el) el.style.display = 'none'; };
+
+      if (role !== 'full') {
+        // Non-owners must not switch to their own ledgers from a shared link.
+        const t = $('btn-ledger-title');
+        if (t) { t.onclick = null; t.style.pointerEvents = 'none'; }
+        hide('ledger-chevron');
+      }
 
       if (role === 'cashier') {
         hide('btn-settings');
