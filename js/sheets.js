@@ -1,26 +1,31 @@
 /**
- * @fileoverview Google Sheets / Drive CRUD module for Jambu Batu Ledger.
- * Handles spreadsheet discovery, creation, and all read/write operations
- * against the ledger tabs (Daily_Sales, Expenses, Inventory, Settings).
+ * @fileoverview Google Sheets / Drive CRUD module for the Ledger app.
+ * Manages MULTIPLE ledgers: every spreadsheet this app created in the
+ * user's Drive is one business ledger. Handles discovery, creation,
+ * renaming, switching, and all read/write operations against the ledger
+ * tabs (Daily_Sales, Expenses, Inventory, Monthly_Summary, Settings).
  *
- * Exposes a global `JambuSheets` object.
+ * Exposes a global `JambuSheets` object. (The Jambu* prefix is a legacy
+ * internal namespace — not user-visible.)
  */
 
 const JambuSheets = (() => {
   let spreadsheetId = null;
-  const SPREADSHEET_NAME = 'Jambu_Batu_Ledger';
+  let ledgers = []; // [{id, name}] — all app-created ledgers in the user's Drive
+  const ACTIVE_KEY = 'jambu_active_ledger';
+  const DEFAULT_LEDGER_NAME = 'My Business Ledger';
   const DEFAULT_TARGET_PROFIT = 2000;
 
-  // Seed categories used the first time a ledger runs. After that the list
-  // lives in the Settings tab (key: 'categories') and is fully user-editable.
+  // Seed categories for a brand-new ledger. After creation the list lives in
+  // that ledger's Settings tab (key: 'categories') and is fully user-editable,
+  // so every business can have its own categories.
   const DEFAULT_CATEGORIES = [
-    { name: 'Fresh Guava',          type: 'COGS', color: '#EF4444' },
-    { name: 'Fertilizer/Pesticide', type: 'COGS', color: '#F59E0B' },
-    { name: 'Seedlings/Soil',       type: 'COGS', color: '#8B5CF6' },
-    { name: 'Packaging',            type: 'COGS', color: '#10B981' },
-    { name: 'Rent/Stall',           type: 'OPEX', color: '#3B82F6' },
-    { name: 'Transport',            type: 'OPEX', color: '#EC4899' },
-    { name: 'Others',               type: 'OPEX', color: '#6B7280' },
+    { name: 'Raw Materials', type: 'COGS', color: '#EF4444' },
+    { name: 'Supplies',      type: 'COGS', color: '#F59E0B' },
+    { name: 'Packaging',     type: 'COGS', color: '#10B981' },
+    { name: 'Rent/Stall',    type: 'OPEX', color: '#3B82F6' },
+    { name: 'Transport',     type: 'OPEX', color: '#EC4899' },
+    { name: 'Others',        type: 'OPEX', color: '#6B7280' },
   ];
 
   const TABS = {
@@ -54,7 +59,7 @@ const JambuSheets = (() => {
 
   function _requireInit() {
     if (!spreadsheetId) {
-      throw new Error('[JambuSheets] Spreadsheet not initialised. Call initLedger() first.');
+      throw new Error('[JambuSheets] No active ledger. Call initLedger() first.');
     }
   }
 
@@ -199,45 +204,95 @@ const JambuSheets = (() => {
     getSpreadsheetId() { return spreadsheetId; },
     getDefaultCategories() { return DEFAULT_CATEGORIES.slice(); },
 
+    // ---- Multi-ledger management ----
+    getLedgers() { return ledgers.slice(); },
+
+    getActiveLedgerName() {
+      const l = ledgers.find(x => x.id === spreadsheetId);
+      return l ? l.name : 'Ledger';
+    },
+
+    // With the drive.file scope, files.list only returns spreadsheets this
+    // app created — so every result is one of the user's business ledgers.
+    async listLedgers() {
+      return _call('List ledgers', async () => {
+        const response = await gapi.client.drive.files.list({
+          q: `mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`,
+          fields: 'files(id, name)',
+          orderBy: 'name',
+          spaces: 'drive',
+        });
+        ledgers = (response.result.files || []).map(f => ({ id: f.id, name: f.name }));
+        return ledgers.slice();
+      });
+    },
+
+    async setActiveLedger(id) {
+      const hit = ledgers.find(l => l.id === id);
+      if (!hit) throw new Error('[JambuSheets] Unknown ledger id.');
+      spreadsheetId = id;
+      try { localStorage.setItem(ACTIVE_KEY, id); } catch (e) { /* ignore */ }
+      await this._ensureInventoryTabExists();
+      try { await _repairColumnAlignments(); } catch (e) { console.warn('[JambuSheets] Repair skipped:', e.message); }
+      return id;
+    },
+
+    async createLedger(name) {
+      const title = (name || '').trim() || DEFAULT_LEDGER_NAME;
+      const id = await this._createLedger(title);
+      ledgers.push({ id, name: title });
+      ledgers.sort((a, b) => a.name.localeCompare(b.name));
+      return id;
+    },
+
+    async renameLedger(id, newName) {
+      const title = (newName || '').trim();
+      if (!title) throw new Error('[JambuSheets] renameLedger: name required.');
+      return _call('Rename ledger', async () => {
+        await gapi.client.drive.files.update({ fileId: id, resource: { name: title } });
+        const l = ledgers.find(x => x.id === id);
+        if (l) l.name = title;
+        return true;
+      });
+    },
+
     async initLedger() {
+      // A shared link always wins — it points at someone else's ledger by id.
       const sharedId = (typeof JambuShare !== 'undefined') ? JambuShare.getSharedSheetId() : null;
       if (sharedId) {
         spreadsheetId = sharedId;
+        ledgers = [{ id: sharedId, name: 'Shared Ledger' }];
         console.info(`[JambuSheets] Using shared ledger from link: ${spreadsheetId}`);
         try { await this._ensureInventoryTabExists(); } catch (e) { console.warn('[JambuSheets] Skipped inventory tab check (read-only?):', e.message); }
         try { await _repairColumnAlignments(); } catch (e) { console.warn('[JambuSheets] Skipped repair (read-only?):', e.message); }
         return spreadsheetId;
       }
 
-      const files = await this._findLedger();
-      if (files && files.length > 0) {
-        spreadsheetId = files[0].id;
-        console.info(`[JambuSheets] Found existing ledger: ${spreadsheetId}`);
-        await this._ensureInventoryTabExists();
+      await this.listLedgers();
+      if (!ledgers.length) {
+        // First run: create the user's first business ledger.
+        const id = await this._createLedger(DEFAULT_LEDGER_NAME);
+        ledgers = [{ id, name: DEFAULT_LEDGER_NAME }];
+        spreadsheetId = id;
+        console.info(`[JambuSheets] Created first ledger: ${id}`);
       } else {
-        spreadsheetId = await this._createLedger();
-        console.info(`[JambuSheets] Created new ledger: ${spreadsheetId}`);
+        let saved = null;
+        try { saved = localStorage.getItem(ACTIVE_KEY); } catch (e) { /* ignore */ }
+        const hit = ledgers.find(l => l.id === saved);
+        spreadsheetId = (hit || ledgers[0]).id;
+        console.info(`[JambuSheets] Active ledger: ${this.getActiveLedgerName()} (${spreadsheetId})`);
+        await this._ensureInventoryTabExists();
       }
+      try { localStorage.setItem(ACTIVE_KEY, spreadsheetId); } catch (e) { /* ignore */ }
       await _repairColumnAlignments();
       return spreadsheetId;
     },
 
-    async _findLedger() {
-      return _call('Find ledger', async () => {
-        const response = await gapi.client.drive.files.list({
-          q: `name='${SPREADSHEET_NAME}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`,
-          fields: 'files(id, name)',
-          spaces: 'drive',
-        });
-        return response.result.files || [];
-      });
-    },
-
-    async _createLedger() {
+    async _createLedger(title) {
       return _call('Create ledger', async () => {
         const createResponse = await gapi.client.sheets.spreadsheets.create({
           resource: {
-            properties: { title: SPREADSHEET_NAME },
+            properties: { title },
             sheets: [
               { properties: { title: TABS.DAILY_SALES, index: 0 } },
               { properties: { title: TABS.EXPENSES, index: 1 } },
@@ -292,7 +347,7 @@ const JambuSheets = (() => {
       });
     },
 
-    // ---- Categories (stored in Settings, user-editable) ----
+    // ---- Categories (stored per-ledger in its Settings tab) ----
     async getCategories() {
       _requireInit();
       let raw = null;
@@ -312,7 +367,6 @@ const JambuSheets = (() => {
       return this.setSetting('categories', JSON.stringify(list || []));
     },
 
-    // Rewrites the Category cell of every expense row using oldName.
     async renameCategoryInExpenses(oldName, newName) {
       _requireInit();
       if (!oldName || !newName) throw new Error('[JambuSheets] renameCategoryInExpenses: both names required.');
@@ -336,7 +390,7 @@ const JambuSheets = (() => {
       });
     },
 
-    // ---- Monthly summary (writes the Monthly_Summary tab) ----
+    // ---- Monthly summary ----
     async updateMonthlySummary() {
       _requireInit();
       const [sales, expenses] = await Promise.all([this.getSalesData(), this.getExpensesData()]);
@@ -377,9 +431,8 @@ const JambuSheets = (() => {
     async appendSalesRow({ date, cash = 0, qr = 0, notes = '' }) {
       _requireInit();
       if (!date) throw new Error('[JambuSheets] appendSalesRow: "date" is required.');
-      // Offline: queue instead of failing (validation already passed above).
       if (typeof JambuOffline !== 'undefined' && !navigator.onLine) {
-        JambuOffline.enqueue('sale', { date, cash, qr, notes });
+        JambuOffline.enqueue('sale', { date, cash, qr, notes }, spreadsheetId);
         return { queued: true };
       }
       return _call('Append sales row', async () => {
@@ -396,7 +449,6 @@ const JambuSheets = (() => {
       });
     },
 
-    // Update an existing sales row in place, matched by its original timestamp.
     async updateSalesRow(timestamp, { date, cash = 0, qr = 0, notes = '' }) {
       _requireInit();
       if (!timestamp) throw new Error('[JambuSheets] updateSalesRow: timestamp required.');
@@ -424,12 +476,12 @@ const JambuSheets = (() => {
           });
           return response.result.values || [];
         });
-        if (typeof JambuOffline !== 'undefined') JambuOffline.cache('sales', rows);
+        if (typeof JambuOffline !== 'undefined') JambuOffline.cache(`sales_${spreadsheetId}`, rows);
         return rows;
       } catch (e) {
         if (typeof JambuOffline !== 'undefined') {
           console.warn('[JambuSheets] Offline fallback for sales data.');
-          return JambuOffline.getCached('sales');
+          return JambuOffline.getCached(`sales_${spreadsheetId}`);
         }
         throw e;
       }
@@ -440,7 +492,7 @@ const JambuSheets = (() => {
       if (!date) throw new Error('[JambuSheets] appendExpenseRow: "date" is required.');
       if (!category) throw new Error('[JambuSheets] appendExpenseRow: "category" is required.');
       if (typeof JambuOffline !== 'undefined' && !navigator.onLine) {
-        JambuOffline.enqueue('expense', { date, category, amount, type, vendor, status, notes });
+        JambuOffline.enqueue('expense', { date, category, amount, type, vendor, status, notes }, spreadsheetId);
         return { queued: true };
       }
       return _call('Append expense row', async () => {
@@ -456,7 +508,6 @@ const JambuSheets = (() => {
       });
     },
 
-    // Update an existing expense row in place, matched by its original timestamp.
     async updateExpenseRow(timestamp, { date, category, amount = 0, type = 'Direct (COGS)', vendor = 'General', status = 'Paid', notes = '' }) {
       _requireInit();
       if (!timestamp) throw new Error('[JambuSheets] updateExpenseRow: timestamp required.');
@@ -484,12 +535,12 @@ const JambuSheets = (() => {
           });
           return response.result.values || [];
         });
-        if (typeof JambuOffline !== 'undefined') JambuOffline.cache('expenses', rows);
+        if (typeof JambuOffline !== 'undefined') JambuOffline.cache(`expenses_${spreadsheetId}`, rows);
         return rows;
       } catch (e) {
         if (typeof JambuOffline !== 'undefined') {
           console.warn('[JambuSheets] Offline fallback for expenses data.');
-          return JambuOffline.getCached('expenses');
+          return JambuOffline.getCached(`expenses_${spreadsheetId}`);
         }
         throw e;
       }
@@ -629,12 +680,12 @@ const JambuSheets = (() => {
           });
           return response.result.values || [];
         });
-        if (typeof JambuOffline !== 'undefined') JambuOffline.cache('inventory', rows);
+        if (typeof JambuOffline !== 'undefined') JambuOffline.cache(`inventory_${spreadsheetId}`, rows);
         return rows;
       } catch (e) {
         if (typeof JambuOffline !== 'undefined') {
           console.warn('[JambuSheets] Offline fallback for inventory data.');
-          return JambuOffline.getCached('inventory');
+          return JambuOffline.getCached(`inventory_${spreadsheetId}`);
         }
         throw e;
       }
