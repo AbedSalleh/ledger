@@ -1,5 +1,6 @@
 // ============================================================
 // JambuApp — Main application controller
+// (Jambu* is a legacy internal namespace — not user-visible.)
 // ============================================================
 
 const CONFIG = {
@@ -43,6 +44,7 @@ const JambuApp = (() => {
           this._showApp(user);
           try {
             await JambuSheets.initLedger();
+            this._refreshLedgerTitle();
             await this.loadCategories();
             await JambuDashboard.load();
             this.populateVendorSuggestions();
@@ -65,6 +67,120 @@ const JambuApp = (() => {
           const cat = categories.find(c => c.name === categorySelect.value);
           if (cat) typeSelect.value = typeLabel(cat.type);
         });
+      }
+    },
+
+    // ---- Multi-ledger (businesses) ----
+    _refreshLedgerTitle() {
+      const name = JambuSheets.getActiveLedgerName();
+      const el = $('ledger-title');
+      if (el) el.textContent = name;
+      document.title = `${name} — Ledger`;
+    },
+
+    openLedgers() {
+      const m = $('ledger-modal');
+      if (!m) return;
+      this.renderLedgerList();
+      const inp = $('new-ledger-name');
+      if (inp) inp.value = '';
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    },
+
+    closeLedgers() {
+      const m = $('ledger-modal');
+      if (!m) return;
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    },
+
+    renderLedgerList() {
+      const list = $('ledger-list');
+      if (!list) return;
+      list.innerHTML = '';
+      const active = JambuSheets.getSpreadsheetId();
+      const ledgers = JambuSheets.getLedgers();
+      if (!ledgers.length) {
+        list.innerHTML = '<p class="text-xs text-gray-400 italic">No businesses yet — add one below.</p>';
+        return;
+      }
+      ledgers.forEach(l => {
+        const isActive = l.id === active;
+        const row = document.createElement('div');
+        row.className = `flex items-center gap-2 p-2.5 rounded-xl border transition-all ${isActive ? 'border-brand-600 bg-slate-50' : 'border-slate-200 hover:bg-slate-50 cursor-pointer'}`;
+        const dot = document.createElement('span');
+        dot.className = `w-2 h-2 rounded-full flex-shrink-0 ${isActive ? 'bg-emerald-500' : 'bg-slate-300'}`;
+        const name = document.createElement('span');
+        name.className = 'flex-1 truncate text-sm font-semibold text-gray-800';
+        name.textContent = l.name;
+        row.appendChild(dot);
+        row.appendChild(name);
+        if (isActive) {
+          const tag = document.createElement('span');
+          tag.className = 'text-[10px] font-bold uppercase text-emerald-600';
+          tag.textContent = 'Active';
+          row.appendChild(tag);
+        }
+        const rn = document.createElement('button');
+        rn.className = 'p-1.5 rounded-lg text-gray-300 hover:text-brand-600 hover:bg-brand-50 active:scale-90 transition-all flex-shrink-0';
+        rn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>';
+        rn.title = `Rename ${l.name}`;
+        rn.onclick = (e) => { e.stopPropagation(); this.renameLedger(l.id); };
+        row.appendChild(rn);
+        if (!isActive) row.onclick = () => this.switchLedger(l.id);
+        list.appendChild(row);
+      });
+    },
+
+    async switchLedger(id) {
+      if (id === JambuSheets.getSpreadsheetId()) { this.closeLedgers(); return; }
+      try {
+        this.showToast('Switching business...', 'info');
+        await JambuSheets.setActiveLedger(id);
+        this._refreshLedgerTitle();
+        this.closeLedgers();
+        await this.loadCategories();
+        await JambuDashboard.load();
+        this.populateVendorSuggestions();
+        this.showToast(`Switched to ${JambuSheets.getActiveLedgerName()}`, 'success');
+      } catch (e) {
+        console.error('Switch ledger error:', e);
+        this.showToast('Failed to switch business', 'error');
+      }
+    },
+
+    async addLedger() {
+      const inp = $('new-ledger-name');
+      const name = (inp ? inp.value : '').trim();
+      if (!name) { this.showToast('Enter a business name', 'error'); return; }
+      const btn = $('btn-add-ledger');
+      if (btn) { btn.disabled = true; btn.textContent = 'Creating...'; }
+      try {
+        const id = await JambuSheets.createLedger(name);
+        if (inp) inp.value = '';
+        await this.switchLedger(id);
+      } catch (e) {
+        console.error('Add ledger error:', e);
+        this.showToast('Failed to create business', 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Add'; }
+      }
+    },
+
+    async renameLedger(id) {
+      const l = JambuSheets.getLedgers().find(x => x.id === id);
+      if (!l) return;
+      const nn = prompt('Rename business:', l.name);
+      if (!nn || !nn.trim() || nn.trim() === l.name) return;
+      try {
+        await JambuSheets.renameLedger(id, nn.trim());
+        this.renderLedgerList();
+        this._refreshLedgerTitle();
+        this.showToast('Business renamed', 'success');
+      } catch (e) {
+        console.error('Rename ledger error:', e);
+        this.showToast('Failed to rename', 'error');
       }
     },
 
@@ -455,7 +571,8 @@ const JambuApp = (() => {
         const blob = new Blob([csv], { type: 'text/csv' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'jambu_batu_ledger_export.csv';
+        const slug = JambuSheets.getActiveLedgerName().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'ledger';
+        a.download = `${slug}_export.csv`;
         a.click();
         URL.revokeObjectURL(a.href);
         this.showToast('CSV exported', 'success');
