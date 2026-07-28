@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Jambu Batu Ledger — Stall Financial Tracking</title>
-  <meta name="description" content="Track your guava stall's daily revenue, expenses, and profit with Jambu Batu Ledger. Free, simple, and powered by Google Sheets.">
+  <title>Ledger — Business Financial Tracking</title>
+  <meta name="description" content="Track daily revenue, expenses, and profit for any of your businesses. Free, simple, and powered by Google Sheets.">
   <meta name="theme-color" content="#0F172A">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Jambu Ledger">
+  <meta name="apple-mobile-web-app-title" content="Ledger">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon.svg">
@@ -47,8 +47,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
           </svg>
         </div>
-        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-1">Jambu Batu Ledger</h1>
-        <p class="text-slate-500 text-sm font-medium mb-8">Guava Stall Financial Tracking System</p>
+        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-1">Ledger</h1>
+        <p class="text-slate-500 text-sm font-medium mb-8">Track sales, expenses & profit — for every business you run</p>
         <button
           id="btn-sign-in"
           onclick="JambuApp.signIn()"
@@ -69,7 +69,7 @@
           <span>Data is stored in your private Google Drive</span>
         </div>
       </div>
-      <p class="text-center text-slate-600 text-xs mt-6">v1.1 · Professional Ledger System</p>
+      <p class="text-center text-slate-600 text-xs mt-6">v2.0 · Multi-Business Ledger</p>
     </div>
   </div>
 
@@ -78,15 +78,18 @@
 
     <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 safe-top">
       <div class="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto">
-        <div class="flex items-center gap-2">
-          <svg class="w-5.5 h-5.5 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-center gap-2 min-w-0">
+          <svg class="w-5.5 h-5.5 text-brand-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
           </svg>
-          <h2 class="text-base font-bold text-brand-900 tracking-tight uppercase">Jambu Batu Ledger</h2>
-          <span id="role-banner" class="hidden text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"></span>
-          <span id="sync-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"></span>
+          <button id="btn-ledger-title" onclick="JambuApp.openLedgers()" class="flex items-center gap-1 min-w-0 active:scale-95 transition-all" title="Switch business">
+            <h2 id="ledger-title" class="text-base font-bold text-brand-900 tracking-tight uppercase truncate">Ledger</h2>
+            <svg id="ledger-chevron" class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <span id="role-banner" class="hidden text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 flex-shrink-0"></span>
+          <span id="sync-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 flex-shrink-0"></span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-shrink-0">
           <button id="btn-share" onclick="JambuApp.openShare()" class="p-2 rounded-xl text-gray-400 hover:text-slate-800 hover:bg-slate-100 active:scale-90 transition-all" aria-label="Share access">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
           </button>
@@ -236,13 +239,13 @@
             <svg class="w-6 h-6 text-brand-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             Record Sales
           </h2>
-          <p class="text-sm text-brand-600/70 mt-1">Log today's guava stall revenue</p>
+          <p class="text-sm text-brand-600/70 mt-1">Log today's revenue</p>
         </div>
         <div class="bg-white rounded-2xl shadow-warm-lg p-6 space-y-5">
           <div class="form-group"><label for="sales-date" class="block text-sm font-semibold text-gray-700 mb-1.5">Date</label><input type="date" id="sales-date" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
           <div class="form-group"><label for="sales-cash" class="block text-sm font-semibold text-gray-700 mb-1.5">Cash Revenue</label><div class="input-prefix"><input type="number" id="sales-cash" inputmode="decimal" placeholder="0.00" step="0.01" min="0" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div></div>
           <div class="form-group"><label for="sales-qr" class="block text-sm font-semibold text-gray-700 mb-1.5">QR / DuitNow Revenue</label><div class="input-prefix"><input type="number" id="sales-qr" inputmode="decimal" placeholder="0.00" step="0.01" min="0" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div></div>
-          <div class="form-group"><label for="sales-notes" class="block text-sm font-semibold text-gray-700 mb-1.5">Notes</label><textarea id="sales-notes" placeholder="e.g. Rainy day, Pasar Malam good harvest" rows="2" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none resize-none"></textarea></div>
+          <div class="form-group"><label for="sales-notes" class="block text-sm font-semibold text-gray-700 mb-1.5">Notes</label><textarea id="sales-notes" placeholder="e.g. Rainy day, busy market" rows="2" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none resize-none"></textarea></div>
           <button id="btn-save-sales" onclick="JambuApp.saveSales()" class="w-full py-4 text-xl font-bold rounded-2xl text-white gradient-btn shadow-warm-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 mt-2">Save Sales</button>
         </div>
       </div>
@@ -268,11 +271,11 @@
           <div class="form-group">
             <label for="expense-type" class="block text-sm font-semibold text-gray-700 mb-1.5">Expense Classification</label>
             <select id="expense-type" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none cursor-pointer">
-              <option value="Direct (COGS)" selected>Direct (COGS) — Guava, fertilizer, seedlings, packaging</option>
+              <option value="Direct (COGS)" selected>Direct (COGS) — Ingredients, raw materials, packaging</option>
               <option value="Indirect (OPEX)">Indirect (OPEX) — Rent, transport, utilities, wages</option>
             </select>
           </div>
-          <div class="form-group"><label for="expense-vendor" class="block text-sm font-semibold text-gray-700 mb-1.5">Vendor / Supplier</label><input type="text" id="expense-vendor" list="vendor-suggestions" placeholder="e.g. orchard name, supplier" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"><datalist id="vendor-suggestions"></datalist></div>
+          <div class="form-group"><label for="expense-vendor" class="block text-sm font-semibold text-gray-700 mb-1.5">Vendor / Supplier</label><input type="text" id="expense-vendor" list="vendor-suggestions" placeholder="e.g. supplier name" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"><datalist id="vendor-suggestions"></datalist></div>
           <div class="form-group">
             <label for="expense-status" class="block text-sm font-semibold text-gray-700 mb-1.5">Payment Status</label>
             <select id="expense-status" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none cursor-pointer">
@@ -281,7 +284,7 @@
             </select>
           </div>
           <div class="form-group"><label for="expense-amount" class="block text-sm font-semibold text-gray-700 mb-1.5">Amount</label><div class="input-prefix"><input type="number" id="expense-amount" inputmode="decimal" placeholder="0.00" step="0.01" min="0" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-lg font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div></div>
-          <div class="form-group"><label for="expense-notes" class="block text-sm font-semibold text-gray-700 mb-1.5">Notes</label><textarea id="expense-notes" placeholder="e.g. Bought 50kg of guava from Pak Rahman" rows="2" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none resize-none"></textarea></div>
+          <div class="form-group"><label for="expense-notes" class="block text-sm font-semibold text-gray-700 mb-1.5">Notes</label><textarea id="expense-notes" placeholder="e.g. Bought supplies from the usual vendor" rows="2" class="w-full px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none resize-none"></textarea></div>
           <button id="btn-save-expense" onclick="JambuApp.saveExpense()" class="w-full py-4 text-xl font-bold rounded-2xl text-white gradient-btn shadow-warm-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 mt-2">Save Expense</button>
         </div>
       </div>
@@ -332,6 +335,25 @@
     </nav>
   </div>
 
+  <!-- LEDGER (BUSINESS) SWITCHER MODAL -->
+  <div id="ledger-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-6 backdrop-blur-modal">
+    <div class="bg-white rounded-2xl shadow-warm-xl w-full max-w-sm p-6 animate-slideUp relative">
+      <button onclick="JambuApp.closeLedgers()" class="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:scale-90 transition-all" aria-label="Close">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2 mb-1">
+        <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        My Businesses
+      </h3>
+      <p class="text-xs text-gray-500 mb-4">Each business keeps its own ledger, categories and inventory. Tap one to switch.</p>
+      <div id="ledger-list" class="space-y-2 mb-4 max-h-60 overflow-y-auto pr-1"></div>
+      <div class="flex items-center gap-2 border-t border-slate-100 pt-4">
+        <input id="new-ledger-name" type="text" placeholder="New business name" class="flex-1 min-w-0 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-brand-500">
+        <button id="btn-add-ledger" onclick="JambuApp.addLedger()" class="px-4 py-2.5 text-sm font-bold rounded-lg text-white gradient-btn active:scale-95 transition-all flex-shrink-0">Add</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SETTINGS MODAL -->
   <div id="settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-6 backdrop-blur-modal">
     <div class="bg-white rounded-2xl shadow-warm-xl w-full max-w-sm p-6 animate-slideUp relative max-h-[90vh] overflow-y-auto">
@@ -380,9 +402,9 @@
       </button>
       <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2 mb-1">
         <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-        Share Ledger
+        Share This Business
       </h3>
-      <p class="text-xs text-gray-500 mb-5">Grant a worker access to this ledger by email, then send them the link.</p>
+      <p class="text-xs text-gray-500 mb-5">Grant a worker access to the current business's ledger by email, then send them the link.</p>
       <div class="space-y-4">
         <div class="form-group"><label for="share-email" class="block text-sm font-semibold text-gray-700 mb-1.5">Worker's Google email</label><input type="email" id="share-email" inputmode="email" placeholder="name@gmail.com" class="w-full min-h-[48px] px-4 py-3 bg-slate-50/50 border-2 border-slate-200/80 rounded-xl text-base font-medium text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
         <div class="form-group">
@@ -400,7 +422,7 @@
             <input id="share-link" type="text" readonly class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-gray-700 outline-none">
             <button onclick="JambuShare.copyLink()" class="px-3 py-2 text-xs font-bold rounded-lg text-white gradient-btn active:scale-95 transition-all">Copy</button>
           </div>
-          <p class="text-[11px] text-gray-400 leading-relaxed">Tip: ask them to open this link, then “Add to Home Screen” so the icon always opens your ledger.</p>
+          <p class="text-[11px] text-gray-400 leading-relaxed">Tip: ask them to open this link, then “Add to Home Screen” so the icon always opens this business's ledger.</p>
         </div>
       </div>
     </div>
@@ -433,7 +455,7 @@
       </h3>
       <form id="inventory-form" onsubmit="event.preventDefault(); JambuInventory.saveItem();" class="space-y-4">
         <input type="hidden" id="inventory-old-name">
-        <div class="form-group"><label for="inventory-name" class="block text-xs font-bold text-gray-700 mb-1">Item Name</label><input type="text" id="inventory-name" placeholder="e.g. Fresh Guava, Fertilizer, Packaging" required class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
+        <div class="form-group"><label for="inventory-name" class="block text-xs font-bold text-gray-700 mb-1">Item Name</label><input type="text" id="inventory-name" placeholder="e.g. Raw materials, packaging" required class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
         <div class="grid grid-cols-2 gap-3">
           <div class="form-group"><label for="inventory-qty" class="block text-xs font-bold text-gray-700 mb-1">Quantity</label><input type="number" id="inventory-qty" inputmode="decimal" placeholder="0.00" step="0.01" min="0" required class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
           <div class="form-group"><label for="inventory-unit" class="block text-xs font-bold text-gray-700 mb-1">Unit</label><input type="text" id="inventory-unit" placeholder="e.g. kg, pcs, bags" required class="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base font-semibold text-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white transition-all outline-none"></div>
@@ -460,8 +482,8 @@
       </div>
       <div class="bg-white border border-gray-200 rounded-3xl p-8 shadow-warm-lg print:border-none print:shadow-none print:p-0 print:m-0">
         <div class="text-center border-b border-gray-200 pb-6 mb-6">
-          <h1 class="text-2xl font-black tracking-tight text-gray-900 uppercase">Jambu Batu Ledger</h1>
-          <p class="text-xs font-semibold text-gray-500 tracking-wider uppercase mt-1">Guava Stall Financial Report</p>
+          <h1 id="stmt-biz-name" class="text-2xl font-black tracking-tight text-gray-900 uppercase">Ledger</h1>
+          <p class="text-xs font-semibold text-gray-500 tracking-wider uppercase mt-1">Business Financial Report</p>
           <div class="mt-4 inline-block px-3 py-1 bg-neutral-100 rounded-full print:bg-none"><span class="text-xs font-bold text-gray-700 uppercase" id="stmt-period-label">June 2026</span></div>
         </div>
         <div class="mb-4"><h2 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Statement of Profit and Loss</h2></div>
@@ -499,7 +521,7 @@
           </div>
         </div>
         <div class="border-t border-gray-200 pt-6 mt-8 flex flex-col sm:flex-row justify-between items-start sm:items-end text-xs text-gray-400 gap-8">
-          <div><p>Generated on: <span id="stmt-gen-timestamp" class="font-medium text-gray-600"></span></p><p class="mt-0.5">App: Jambu Batu Ledger</p></div>
+          <div><p>Generated on: <span id="stmt-gen-timestamp" class="font-medium text-gray-600"></span></p><p class="mt-0.5">App: Ledger</p></div>
           <div class="w-48 text-center"><div class="border-b border-gray-300 pb-1 mb-1 min-h-[30px]"></div><p class="font-bold text-gray-600">Prepared By</p></div>
         </div>
       </div>
