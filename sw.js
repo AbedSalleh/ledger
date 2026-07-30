@@ -1,5 +1,8 @@
-// Ledger — service worker (app-shell cache-first)
-const CACHE = 'jambu-shell-v2';
+// Ledger — service worker
+// Strategy: stale-while-revalidate for same-origin assets — serve from cache
+// instantly (offline-capable), but always re-fetch in the background so the
+// NEXT load picks up deployed updates without manual cache-version bumps.
+const CACHE = 'jambu-shell-v3';
 const ASSETS = [
   '.',
   'index.html',
@@ -32,16 +35,20 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+  // Never intercept Google APIs / auth — only same-origin shell assets.
   if (url.origin !== location.origin) return;
   e.respondWith(
-    caches.match(e.request, { ignoreSearch: true }).then(
-      (hit) =>
-        hit ||
-        fetch(e.request).then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy));
+    caches.match(e.request, { ignoreSearch: true }).then((hit) => {
+      const refresh = fetch(e.request)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, copy));
+          }
           return res;
         })
-    )
+        .catch(() => hit); // offline: fall back to cache
+      return hit || refresh;
+    })
   );
 });

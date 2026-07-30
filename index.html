@@ -78,13 +78,13 @@
 
     <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 safe-top">
       <div class="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto">
-        <div class="flex items-center gap-2 min-w-0">
-          <svg class="w-5.5 h-5.5 text-brand-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-center gap-1.5 min-w-0 flex-1 mr-2">
+          <svg class="w-5 h-5 text-brand-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
           </svg>
-          <button id="btn-ledger-title" onclick="JambuApp.openLedgers()" class="flex items-center gap-1 min-w-0 active:scale-95 transition-all" title="Switch business">
-            <h2 id="ledger-title" class="text-base font-bold text-brand-900 tracking-tight uppercase truncate">Ledger</h2>
-            <svg id="ledger-chevron" class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+          <button id="btn-ledger-title" onclick="JambuApp.openLedgers()" class="flex items-center gap-1 min-w-0 max-w-[55vw] sm:max-w-xs bg-slate-100 hover:bg-slate-200 rounded-full pl-3 pr-2 py-1.5 active:scale-95 transition-all" title="Switch business">
+            <span id="ledger-title" class="text-sm font-semibold text-brand-900 truncate">Ledger</span>
+            <svg id="ledger-chevron" class="w-3.5 h-3.5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
           </button>
           <span id="role-banner" class="hidden text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 flex-shrink-0"></span>
           <span id="sync-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 flex-shrink-0"></span>
